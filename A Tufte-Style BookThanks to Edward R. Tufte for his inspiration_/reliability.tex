@@ -1,0 +1,81 @@
+\chapter{Basic concepts of Structural Reliability}
+\label{ch:2}
+Human understanding of the laws of nature allows him to try to model the physical phenomena
+occurring around him. This knowledge will never be complete, but it can be attempted to be
+taken as in-depth as desired. How rigorous one wants to be becomes a trade-off between
+the benefits it brings and the difficulty and costs involved. \\
+
+Regarding structures, it is of interest to study certain situations in which
+undesirable conditions take place. These are called limit state violations.
+The study of structural reliability concerns the calculation and prediction of
+the probability of a structure reaching such states \citep{Melchers2018}. \\
+
+In accordance with the previously mentioned, the estimation of structural reliability can be done from
+different approaches, considering to a greater or lesser extent the uncertainties
+inherent to structural problems. 
+
+\section{Uncertainties in Reliability Assesment}
+Uncertainties are what make the study of reliability meaningful. During the
+service life of a structure, several variables are involved that introduce
+uncertainties. A basic classification can be made according to their origin: \citep{Nowak2000}:
+\begin{itemize}
+    \item \textbf{Natural causes:} the unpredictability of loads\sidenote{such as
+    earthquakes, water pressure, live load, etc} and the material properties
+    that affects the mechanical behavior.
+    \item \textbf{Human causes:} every task performed by a human being has a
+    certain amount of uncertainty. Decision making is affected by many factors
+    such as the level of knowledge, the presence of distractions, communication
+    problems, among others.
+\end{itemize}
+Due to uncertainties, the loads and resistances of a structure can be considered
+as random variables, and as such, they are a function of three factors:
+\begin{itemize}
+    \item \textbf{Physical variation:} the variation that is inherent in the 
+    considered quantity.
+    \item \textbf{Statistical variation:} parameter estimation based on a
+    limited sample size leads to uncertainty.
+    \item \textbf{Model variation:} simplifications made, unknown correlation 
+    between variables, correlations and unknown boundary conditions.
+\end{itemize}
+
+\section{Deterministic approach}
+The deterministic approach is the traditional one. In this approach, the uncertainties
+in the forces and resistances are covered by assuming that the variation of these
+forces and resistances have limits that are not exceeded. Given this simplicity,
+it is usually necessary to overestimate the magnitudes in order to provide greater
+safety. This is usual in design codes when considering safety factors in the limit
+state equations. It is widely used, especially in simple and common problems.
+However, this required safety margin implies the need to assume higher costs. 
+\section{Partial probabilistic approach}
+The historical record of events that expose structures to large loads, such as
+earthquakes, floods, tornadoes, etc., shows that they have a certain frequency
+according to their magnitude. For instance, during one day there may be multiple
+low-scale earthquakes, but every few years there is one of considerable destructive
+power. The partially probabilistic approach handles these return periods when considering
+the maximum loads to which a structure will be subjected, since it is not cost-effective
+to design an element for an event that it will probably never have to face. As its
+name indicates, this approach considers some randomness of the variables involved,
+but continues to make many simplifications.
+
+\section{Probabilistic approach}
+As discussed above, there is some randomness associated with the variables that
+affect the loads and strengths of structures. Taking this into account, allows
+for a deeper analysis, and therefore, to know in greater detail the behavior of
+the structure, which is always desirable. \\
+
+By making use of statistics, it is possible to infer an approximate distribution
+that the values of the variables mentioned above follow. By considering this, it
+is possible to estimate the probability that the loads are greater than the
+resistances, being this the probability of failure of the structure. However,
+in most cases this calculation is very complex and it is not possible to solve
+it analytically.For this reason, it is necessary to use methods that provide an
+approximation of the probability of failure.
+
+\section{Monte Carlo Simulation}
+With knowledge of the distributions followed by the variables involved in the
+reliability problem, by means of numerical techniques it is possible to generate
+random samples of numbers following these distributions. For a given sample it is
+possible to estimate the average number of points in this space that cause the structure
+to fail. By the law of large numbers, this average gets closer and closer to the expected
+value of the distribution. The Monte Carlo simulation is based on this principle. Despite
+its simplicity, this method is very robust when dealing with structural reliability problems.

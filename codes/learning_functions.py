@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Here we have some learning functions to use with the AK-MCS algorithm.
+Some learning functions to use with the AK-MCS algorithm.
 
 @author: jclugor
 """
@@ -119,8 +119,8 @@ def EFF(m, s, DoE):
     a = 0          # threshold
 
     m_a   = (a - m)/s         
-    m_a_m = (a - eps - m)/s    # m_a+
-    m_a_p = (a + eps - m)/s    # m_a-
+    m_a_m = (a - eps - m)/s    # m_a minus eps
+    m_a_p = (a + eps - m)/s    # m_a plus eps
 
     EFF = (m - a) * (2*ncdf(m_a) - ncdf(m_a_m) - ncdf(m_a_p)) \
               - s * (2*npdf(m_a) - npdf(m_a_m) - npdf(m_a_p)) \
@@ -130,3 +130,48 @@ def EFF(m, s, DoE):
     out_vector = build_output(EFF, DoE, -1)  # assign a dummy value of -1
     idx = out_vector.argmax()
     return out_vector, idx, out_vector[idx] <= 0.001
+
+# %%
+def H(m, s, DoE):
+    """
+    Learning function H
+    
+    U(m, s)
+    
+    Proposed by Z. Lv et al (DOI: 10.1016/j.camwa.2015.07.004). It measures
+    uncertainty based on the information entrophy theory.
+
+    Parameters
+    ----------
+    m : ndarray
+        1D array containing data with `float` type. It corresponds to the mean
+        given by a Kriging model.
+    s : ndarray
+        1D array containing data with `float` type. It corresponds to the
+        standard deviation given by a Kriging model.
+
+    Returns
+    -------
+    EFF: ndarray
+        1D array containing data with `float` type. It is the function
+        evaluated.
+    idx: integer
+        index of the point in the population that is expected to improve the
+        estimation the most.
+    stop_condition: bool
+        wheter the stopping condition is met or not
+    """
+    # PDF and CDF of the normal distribution 
+    npdf = norm.pdf
+    ncdf = norm.cdf
+
+    D_p   = 2*s + m         
+    D_m   = 2*s - m    
+
+    H = np.abs(np.log(np.sqrt(2*np.pi)*s + 1/2) * (ncdf(D_m/s) - ncdf(-D_p/s))
+               - (D_m/s*npdf(D_m/s) + D_p/s*npdf(-D_p/s)))
+
+    # the stopping condition is met when max(EFF) <= 0.001
+    out_vector = build_output(H, DoE, -1)  # assign a dummy value of -1
+    idx = out_vector.argmax()
+    return out_vector, idx, out_vector[idx] <= 0.5

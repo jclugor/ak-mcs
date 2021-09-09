@@ -1,0 +1,70 @@
+\begin{thebibliography}{9}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Balesdent et~al.(2013)Balesdent, Morio, and Marzat]{Balesdent2013}
+M.~Balesdent, J.~Morio, and J.~Marzat.
+\newblock Krigin-based adaptive importance sampling algorithms for rare event
+  estimation.
+\newblock \emph{Structural Safety}, 44\penalty0 (1-10), 2013.
+\newblock \doi{10.1016/j.strusafe.2013.04.001}.
+
+\bibitem[Bichon et~al.(2008)Bichon, Eldred, Swiler, Mahadevan, and
+  McFarland]{Bichon2008}
+B.~Bichon, M.~Eldred, L.~Swiler, S.~Mahadevan, and J.~McFarland.
+\newblock Efficient global reliability analysis for nonlinear implicit
+  performance functions.
+\newblock \emph{AIAA Journal}, 46\penalty0 (10), 2008.
+\newblock \doi{10.2514/1.34321}.
+
+\bibitem[Choi et~al.(2006)Choi, Grandhi, and Canfield]{Choi2006}
+S.~Choi, R.~Grandhi, and R.~Canfield.
+\newblock \emph{Reliability-based Structural Design}.
+\newblock Springer, first edition, 2006.
+\newblock ISBN 9781846284441.
+
+\bibitem[Echard et~al.(2011)Echard, Gayton, and Lemaire]{Echard2011}
+B.~Echard, N.~Gayton, and M.~Lemaire.
+\newblock {AK-MCS}: An active learning reliability method combining {Kriging}
+  and {Monte Carlo Simulation}.
+\newblock \emph{Structural Safety}, 33\penalty0 (145-154), 2011.
+\newblock \doi{10.1016/j.strusafe.2011.01.002}.
+
+\bibitem[Lv et~al.(2015)Lv, Lu, and Wang]{Lv2015}
+Z.~Lv, Z.~Lu, and P.~Wang.
+\newblock A new learning function for {Kriging} and its applications to solve
+  reliability problems in engineering.
+\newblock \emph{Computers and Mathematics with Applications}, 70\penalty0
+  (1182-1197), 2015.
+\newblock \doi{10.1016/j.camwa.2015.07.004}.
+
+\bibitem[Melchers and Beck(2018)]{Melchers2018}
+R.~Melchers and A.~Beck.
+\newblock \emph{Structural Reliability Analysis and Prediction}.
+\newblock John Wiley \& Sons Ltd, third edition, 2018.
+\newblock ISBN 9781119266075.
+
+\bibitem[Nowak and Collins(2000)]{Nowak2000}
+A.~Nowak and K.~Collins.
+\newblock \emph{Reliability of Structures}.
+\newblock McGraw-Hill, first edition, 2000.
+\newblock ISBN 0-07-048163-6.
+
+\bibitem[Peijuan et~al.(2017)Peijuan, Ming, Zhouhong, and Liqi]{Peijuan2017}
+Z.~Peijuan, W.~Ming, Z.~Zhouhong, and W.~Liqi.
+\newblock A new active learning method based on the learning function {U} of
+  the {AK-MCS} reliability analysis method.
+\newblock \emph{Engineering Structures}, 148\penalty0 (185-194), 2017.
+\newblock \doi{10.1016/j.engstruct.2017.06.038}.
+
+\bibitem[Schueremans and Gemert(2005)]{Schu2005}
+L.~Schueremans and D.~Van Gemert.
+\newblock Benefit of splines and neural networks in simulation based structural
+  reliability analysis.
+\newblock \emph{Structural Safety}, 27\penalty0 (246-261), 2005.
+\newblock \doi{10.1016/j.strusafe.2004.11.001}.
+
+\end{thebibliography}

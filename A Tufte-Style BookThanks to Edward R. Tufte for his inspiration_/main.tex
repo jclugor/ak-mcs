@@ -1,0 +1,199 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tufte-Style Book (Minimal Template)
+% LaTeX Template
+% Version 1.0 (5/1/13)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+% IMPORTANT NOTE:
+% In addition to running BibTeX to compile the reference list from the .bib
+% file, you will need to run MakeIndex to compile the index at the end of the
+% document.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[justified, openany, notoc]{tufte-book} % Use the tufte-book class which in turn uses the tufte-common class
+
+\hypersetup{colorlinks} % Comment this line if you don't wish to have colored links
+
+\usepackage{microtype} % Improves character and word spacing
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{empheq}
+\usepackage{lipsum} % Inserts dummy text
+\usepackage[scientific-notation=true]{siunitx}
+\usepackage{booktabs} % Better horizontal rules in tables
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{graphicx} % Needed to insert images into the document
+\graphicspath{{graphics/}} % Sets the default location of pictures
+\setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio} % Improves figure scaling
+
+\usepackage{fancyvrb} % Allows customization of verbatim environments
+\fvset{fontsize=\normalsize} % The font size of all verbatim text can be changed here
+
+\newcommand{\hangp}[1]{\makebox[0pt][r]{(}#1\makebox[0pt][l]{)}} % New command to create parentheses around text in tables which take up no horizontal space - this improves column spacing
+\newcommand{\hangstar}{\makebox[0pt][l]{*}} % New command to create asterisks in tables which take up no horizontal space - this improves column spacing
+\newcommand{\paren}[1]{\left( #1 \right)}
+\newcommand{\bracket}[1]{\left[ #1 \right]}
+\usepackage{xspace} % Used for printing a trailing space better than using a tilde (~) using the \xspace command
+\usepackage{float}
+\newcommand{\monthyear}{\ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi,\space\number\year} % A command to print the current month and year
+\newcommand{\openepigraph}[2]{ % This block sets up a command for printing an epigraph with 2 arguments - the quote and the author
+\begin{fullwidth}
+\sffamily\large
+\begin{doublespace}
+\noindent\allcaps{#1}\\ % The quote
+\noindent\allcaps{#2} % The author
+\end{doublespace}
+\end{fullwidth}
+}
+
+\newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage} % Command to insert a blank page
+
+\usepackage{makeidx} % Used to generate the index
+\makeindex % Generate the index which is printed at the end of the document
+
+%----------------------------------------------------------------------------------------
+
+\renewcommand{\maketitlepage}{%
+\thispagestyle{empty}
+\begin{fullwidth}
+\begin{center}
+  \vspace*{1cm}
+
+  \textbf{\Huge Implementation of the AK-MCS algorithm for structural reliability}
+       
+  \vspace{1cm}
+
+  \textbf{by} \\
+
+  \textbf{\large Juan Camilo Lugo Rojas}
+
+  \vspace{2cm}
+  \textbf{Advisor} \\
+  \textbf{\large Dr. techn. Diego Andrés Alvarez Marín}
+
+  \vspace{1.5cm}
+
+  
+  \includegraphics[width=0.4\textwidth]{graphics/escudo}
+  
+  \vfill
+  \textit{Submitted in partial fulfillment of the requirements\\
+  for the degree of}
+
+  \vspace{0.2cm}
+
+  \large Civil Engineer
+
+  \vspace{0.8cm}
+
+  Department of Civil Engineering\\
+  Faculty of Engineering and Architecture\\
+  National University of Colombia at Manizales\\
+  \vspace{0.5cm}
+
+  \monthyear
+       
+\end{center}
+\end{fullwidth}
+}
+
+% chapter title style
+\definecolor{chapcolor}{rgb}{0.447, 0.035, 0.337}
+\def\Vhrulefill{\leavevmode\leaders\hrule height 0.8ex depth \dimexpr0.4pt-0.7ex\hfill\kern0pt}
+
+\setcounter{secnumdepth}{2}
+
+\titleformat{\chapter}[display]%
+  {\Huge\rmfamily\itshape\bfseries}
+  {{\colorbox{chapcolor}{\parbox{2cm}{\centering\itshape\Large\color{white}Chapter \thechapter}}}\Vhrulefill}{0pt}
+  {}
+
+% toc
+
+\setcounter{tocdepth}{2}
+\addtocontents{toc}{\itshape}
+
+\begin{document}
+
+\frontmatter
+
+%----------------------------------------------------------------------------------------
+
+\maketitle % Print the title page
+
+%----------------------------------------------------------------------------------------
+%	DEDICATION PAGE
+%----------------------------------------------------------------------------------------
+
+% \cleardoublepage
+% \thispagestyle{empty}
+% ~\vfill
+% \begin{doublespace}
+% \noindent\fontsize{18}{22}\selectfont\itshape
+% \nohyphenation
+
+% \end{doublespace}
+% \vfill
+% \vfill
+
+%----------------------------------------------------------------------------------------
+%	Abstract
+%----------------------------------------------------------------------------------------
+%\include{abstract.tex}
+%----------------------------------------------------------------------------------------
+\pagenumbering{roman}
+\tableofcontents % Print the table of contents
+
+%----------------------------------------------------------------------------------------
+
+\listoffigures % Print a list of figures
+\addcontentsline{toc}{chapter}{List of Figures}
+%----------------------------------------------------------------------------------------
+\addtocontents{}{}
+\listoftables % Print a list of tables
+\addcontentsline{toc}{chapter}{List of Tables}
+%------------------------------------------------
+
+
+%----------------------------------------------------------------------------------------
+
+\mainmatter
+\pagenumbering{arabic}
+
+%----------------------------------------------------------------------------------------
+%	CHAPTER 1
+%----------------------------------------------------------------------------------------
+\include{ch1_intro.tex}
+%----------------------------------------------------------------------------------------
+%	CHAPTER 2
+%----------------------------------------------------------------------------------------
+\include{reliability.tex}
+%----------------------------------------------------------------------------------------
+% \include{rel_asses.tex}
+\include{ak_mcs.tex}
+\include{conclusion.tex}
+\backmatter
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\bibliography{bibliography} % Use the bibliography.bib file for the bibliography
+\bibliographystyle{plainnat} % Use the plainnat style of referencing
+
+%----------------------------------------------------------------------------------------
+
+\printindex % Print the index at the very end of the document
+
+\end{document}

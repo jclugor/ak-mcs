@@ -52,7 +52,9 @@ def learning_fun_U(m, s, idx_DoE):
     """
     Learning function U
 
-    It aims to determine points that are more likely to cross the threshold.
+    It aims to determine points that are more likely to cross the threshold, 
+    that is, they are either closer to the limit state function or have a large 
+    uncertainty.
     
     Proposed in:
     Echard et. al. (2011) - AK-MCS: An active learning reliability method
@@ -97,7 +99,7 @@ def learning_fun_EFF(m, s, idx_DoE):
     Expected feasibility function (EFF)
 
     It gives high feasibility values to those points close to the threshold 
-    and points to those points with large uncertainty.
+    (around a band of width eps) and selects the point with largest uncertainty.
 
     Proposed in:
     B.J. Bichon, M.S. Eldred, L.P. Swiler, S. Mahadevan, J.M. McFarland (2008).

@@ -92,6 +92,8 @@ def learning_fun_U(m, s, idx_DoE):
     stop = extended_U[idx_x_ast] >= 2
 
     return extended_U, idx_x_ast, stop
+learning_fun_U.threshold = 2
+learning_fun_U.name = 'U'
 
 # %%
 def learning_fun_EFF(m, s, idx_DoE):
@@ -155,6 +157,8 @@ def learning_fun_EFF(m, s, idx_DoE):
     stop = extended_EFF[idx_x_ast] <= 0.001
 
     return extended_EFF, idx_x_ast, stop
+learning_fun_EFF.threshold = 0.001  
+learning_fun_EFF.name = 'EFF'
 
 # %%
 def learning_fun_H(m, s, idx_DoE):
@@ -209,3 +213,5 @@ def learning_fun_H(m, s, idx_DoE):
     stop = extended_H[idx_x_ast] <= 0.5
 
     return extended_H, idx_x_ast, stop
+learning_fun_H.threshold = 0.5
+learning_fun_H.name = 'H'

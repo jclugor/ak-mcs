@@ -23,17 +23,18 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel
 plt.rcParams['figure.dpi'] = 200
 
 # %% 
-def ak_mcs(var_dists, n_MC, G, learning_fun, N1=12, k=0, std=False):
+def ak_mcs(random_variables, n_MC, G, learning_fun, N1=12):
     """
     Estimates the probability of failure of a given performance function and a
     Monte Carlo Population using the AK-MCS algorithm
 
-    ak_mcs(X, G, lfun, N1=12, k=0, std=False)
+    S, idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar = \
+                          ak_mcs(random_variables, n_MC, G, learning_fun, N1=12)
     
     Parameters
     ----------
-    var_dists : list
-        The distributions followed by the random variables
+    random_variables : list
+        list of random variables
     n_MC : integer
         Size of the initial Monte Carlo population
     G : function
@@ -42,37 +43,32 @@ def ak_mcs(var_dists, n_MC, G, learning_fun, N1=12, k=0, std=False):
         Learning function to be used by the AK-MCS algorithm (CUALES OPCIONES EXISTEN?)
     N1 : integer
         Size of the initial DoE
-    k : integer, optional
-        When k > 0, the function returns the estimated value of G(X) with their
-        respective DoE every k iterations. The default is 0.
-    std : bool, optional
-        Whether it should return the standard deviation every k iterations.
-        The default is False.
 
     Returns
     -------
-    results: ndarray
-         (a*Nx3) array containing the size of the DoE, the value of the learning
-         function evaluated at its considered limit, and the estimated
-         probability of failure, in that order, at each iteration.  
-    plot_DoE: list
-         It contains the DoE every k iterations, at up to 9 stages (always
-         includes the final values). Not returned if k = 0.      
-    plot_y: ndarray
-         (a*Nxb) array containing the estimated G(X) every k iterations, at up
-         to 9 stages (always includes the final values). Not returned k = 0.
-    plot_std: ndarray
-         (a*Nxb) array containing the standard deviation of G(X) every k
-         iterations, at up to 9 stages (always includes the final values).
-         Not returned if k = 0 or std = False.
-
+    S
+    
+    idx_DoE
+    
+    y_DoE
+    
+    list_pf_hat
+    
+    list_gp
+    
+    list_lf_xstar
     """
     # %% STAGE 0: Initialization of variables
     # number of random variables
-    n = len(var_dists)
+    n = len(random_variables)
 
     # initial number of points in the design of experiments
     Ni = N1
+
+    # list that contain the outputs
+    list_pf_hat   = []
+    list_gp       = []
+    list_lf_xstar = []
 
     # Definition of the kernel. 
     # It is an anisotrophic squared-exponential kernel (aka Gaussian)
@@ -99,10 +95,9 @@ def ak_mcs(var_dists, n_MC, G, learning_fun, N1=12, k=0, std=False):
                         alpha=1e-7)
 
     # %% STAGE 1: Generation of a MC population
-
     S = np.empty((n_MC, n))
-    for i, dist in enumerate(var_dists):
-        S[:,i] = dist(n_MC)
+    for i, rv in enumerate(random_variables):
+        S[:,i] = rv(n_MC)
 
     # %% STAGE 2: definition of an initial DoE
     # index of samples that do belong/do not belong to the DoE
@@ -114,30 +109,14 @@ def ak_mcs(var_dists, n_MC, G, learning_fun, N1=12, k=0, std=False):
     X_DoE = S[idx_DoE]  # select the points of the DoE
     y_DoE = G(X_DoE)    # evaluate the performance function
 
-    ###########################################################################
-    # store the number of points in the DoE, the stopping criteria and the
-    # probability of failure at each iteration to plot them
-    results = np.empty((0,3))
-    # if k > 0, store the corresponding values of plot_y and plot_DoE
-    plot_9grid = k > 0
-    if plot_9grid:
-        plot_y      = np.empty((n_MC,0))
-        plot_DoE    = []
-        if std:
-            plot_std = np.empty((n_MC,0))
-        i = 0       # counter
-    ###########################################################################
     compute_kriging = True
-
-    # initialize y := G(X)
-    y = np.empty(n_MC)
-    
     # %%
     while True:
         while True:
             # %% STAGE 3: computation of the Kriging model according to the DoE
             if compute_kriging:
                 gp.fit(X_DoE, y_DoE)
+                list_gp.append(gp)
                 print(f'Using {Ni} points in the DoE')
             compute_kriging = True              
             
@@ -149,33 +128,16 @@ def ak_mcs(var_dists, n_MC, G, learning_fun, N1=12, k=0, std=False):
             X_noDoE            = S[idx_no_DoE]
             y_noDoE, std_noDoE = gp.predict(X_noDoE, return_std=True)
             
-            # build the vector y = G(X) using the calculated and the predicted values
-            y[idx_DoE]    = y_DoE
-            y[idx_no_DoE] = y_noDoE
             # estimate the probability of failure (Echard et. al, equation 12)
-            pf_hat = (y <= 0).mean()
-            #pf_hat = (np.sum(y_DoE <= 0) + np.sum(y_noDoE <= 0))/n_MC
-
+            pf_hat = (np.sum(y_DoE <= 0) + np.sum(y_noDoE <= 0))/n_MC
+            list_pf_hat.append(pf_hat)
 
             # %% STAGE 5: Identification of the best next point in S to evaluate
             #             on the performance function
             # x_ast is the best next point in S to evaluate
             lf_x, idx_x_ast, stop = learning_fun(y_noDoE, std_noDoE, idx_DoE)
+            list_lf_xstar.append(lf_x[idx_x_ast])
 
-    ###########################################################################
-            # store the values
-            results = np.row_stack((results, [[Ni, lf_x[idx_x_ast], pf_hat]]))
-            if plot_9grid:
-                if (i % k) == 0:
-                    plot_y = np.column_stack((plot_y, y))
-                    plot_DoE.append(idx_DoE)
-                    if std:
-                        tmp = np.empty(n_MC)
-                        tmp[idx_DoE] = 0
-                        tmp[idx_no_DoE] = std_noDoE
-                        plot_std = np.column_stack((plot_std, tmp))
-                i += 1
-    ###########################################################################
             # %% STAGE 6: Stopping condition on learning
             # Check stopping condition
             if stop:
@@ -203,9 +165,11 @@ def ak_mcs(var_dists, n_MC, G, learning_fun, N1=12, k=0, std=False):
         # if the C.o.V. is too high, the metamodel is not accurate enough, more
         # points have to be added to the MC population and the procedure is repeated
         if CoV >= 0.05:
-            # FALTA HACER USANDO LAS PDFs
-            S = np.append(S, np.random.normal(size=(n_MC,2)), axis=0)
-            y = np.append(y, np.empty(n_MC))
+            S_new = np.empty((n_MC, n))
+            for i, rv in enumerate(random_variables):
+                S_new[:,i] = rv(n_MC)
+
+            S = np.append(S, S_new, axis=0)
             n_MC *= 2
 
             idx_no_DoE = np.setdiff1d(np.arange(n_MC), idx_DoE)
@@ -217,37 +181,19 @@ def ak_mcs(var_dists, n_MC, G, learning_fun, N1=12, k=0, std=False):
         break
     # end while
 
-    # adjustment to include the final values of y and the DoE
-    ###########################################################################
-    if plot_9grid:
-        if len(plot_DoE) > 9:
-            plot_DoE = plot_DoE[:9]
-            plot_y = plot_y[:,:9]
-        if len(plot_DoE) == 9:
-            plot_DoE[-1] = idx_DoE
-            plot_y[:,-1]   = y
-        else:
-            plot_y = np.column_stack((plot_y, y))
-            plot_DoE.append(idx_DoE)
-
-    if not plot_9grid:
-        to_return = results
-    else:
-        if std:
-            to_return = (results, plot_DoE, plot_y, plot_std)
-        else:
-            to_return = (results, plot_DoE, plot_y)
-    ###########################################################################
-
-    return to_return
+    return S, idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar
 
 # %%
-def plot_lim_vals(results, threshold, fun_name, ex_name=None, save=False):
+#cambiar nombre
+def plot_lim_vals(N1, list_lf_xstar, lf_name, lf_threshold):
     """
     Plots # of points in DoE vs limit value of learning function
 
     Parameters
     ----------
+
+ARREGLAR
+
     results : ndarray
         Array of results returned by ak_mcs().
     threshold : float
@@ -264,23 +210,24 @@ def plot_lim_vals(results, threshold, fun_name, ex_name=None, save=False):
     None.
 
     """
-    plt.plot(results[:,0], results[:,1], '.')
-    plt.axhline(threshold, 0, 1, ls='--', c='red', lw=1, label='threshold')
+    n_samples = N1 + np.arange(len(list_lf_xstar))    
+    plt.plot(n_samples, list_lf_xstar, '.')
+    plt.axhline(lf_threshold, 0, 1, ls='--', c='red', lw=1, label='threshold')
+    plt.xlabel('Number of calls to $G$')
     plt.yscale('log')
-    plt.xlabel('Number of points in DoE')
+    plt.ylabel('Learning function value for $x^*$')
+    plt.title(f'Variation of the learning function {lf_name} for $x^*$')
+    #plt.savefig(f'conv_{ex_name}_{lf_name}.svg')
     plt.legend()
-    plt.ylabel(f'Limit value of the {fun_name}')
-    plt.title(f'Limit value of learning function {fun_name} through the iterations')
-    if save:
-        plt.savefig(f'{ex_name}_{fun_name}_lim_values.png')
     plt.show()
+    # if save:
+    #     plt.savefig(f'{ex_name}_{fun_name}_lim_values.png')
+
     
 # %%
-def plot_conv(results, pf_mc, fun_name, ex_name=None, save=False):
-    """
-    Plots # of points in DoE vs estimated probability of failure. It shows the
-    standard deviation of the las 5 values at each point, scaled by a factor of
-    20.
+def plot_conv_pf(N1, list_pf_hat, pf_MCS, lf_name):
+    """   
+    Plots the convergence of the estimated probability of failure.
 
     Parameters
     ----------
@@ -300,24 +247,14 @@ def plot_conv(results, pf_mc, fun_name, ex_name=None, save=False):
     None.
 
     """
-    k = 10
-    plt.plot(results[:,0], results[:,2], '+', label='GPR')
-    y_limits = plt.gca().get_ylim()
-    plt.gca().set_ylim(y_limits)
-    pf_std = np.empty(len(results))
-    pf_std[k-1:] = [results[i:i+k,2].std() for i in range(len(pf_std)-k+1)]
-    pf_std[:k-1] = pf_std[k-1]
-    pf_std *= 20
-    plt.fill_between(results[:,0],
-                     results[:,2] - pf_std, results[:,2] + pf_std,
-                     alpha=0.3)
-    plt.axhline(pf_mc, 0, 1, ls='--', c='red', lw=1, label='MCS')
+    n_samples = N1 + np.arange(len(list_pf_hat))    
+    plt.plot(n_samples, list_pf_hat, '+', label='GP')
+    plt.axhline(pf_MCS, 0, 1, ls='--', c='red', lw=1, label='MCS')
     plt.legend()
-    plt.xlabel('Number of points in DoE')
+    plt.xlabel('Number of calls to $G$')
     plt.ylabel('Predicted $p_f$')
-    plt.title(f'Convergence of $p_f$ with the learning function {fun_name}')
-    if save:
-        plt.savefig(f'conv_{ex_name}_{fun_name}.png')
+    plt.title(f'Convergence of $p_f$ with the learning function {lf_name}')
+    #plt.savefig(f'conv_{ex_name}_{lf_name}.svg')
     plt.show()
 
 # %% The following functions should only be used with 2D examples.

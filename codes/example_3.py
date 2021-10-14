@@ -1,39 +1,71 @@
 # -*- coding: utf-8 -*-
 """
-Implementation of the Example 3 from section 4 of "AK-MCS: An active learning
-reliability method combining Kriging and Monte Carlo Simulation" by B. Echard
-et al (DOI: 10.1016/j.strusafe.2011.01.002)
+Implementation of the Example 3 from section 4 of
 
-@author: jclugor
+Echard et. al. (2011) - AK-MCS: An active learning reliability method combining 
+Kriging and Monte Carlo Simulation. Structural Safety. 33. p. 145-154
+https://doi.org/10.1016/j.strusafe.2011.01.002
+
+Authors:
+JCLR - Juan Camilo Lugo Rojas      jclugor@unal.edu.co
+DAAM - Diego Andrés Alvarez Marín  daalvarez@unal.edu.co
+
+DATE          WHO   WHAT
+Oct 13, 2021  JCLR  Algorithm
+Oct 13, 2021  DAAM  Comments and readability
 """
 # %% modules import
 import numpy as np
-from functions import ak_mcs, plot_conv, plot_lim_vals
-import learning_functions_DIEGO as lf
+from functions import ak_mcs, plot_conv_pf, plot_lim_vals
+import learning_functions as lf
 
-# %% performance functio
+# %% performance function
 
 def G(X):
-    c1, c2, m, r, t, F = X.T
-    w = np.sqrt((c1 + c2)/m)
-    return 3*r - np.abs(2*F/(m*w**2)*np.sin(w*t/2))
+    m, c1, c2, r, F1, t1 = X.T
+    w0 = np.sqrt((c1 + c2)/m)
+    return 3*r - np.abs(2*F1/(m*w0**2)*np.sin(w0*t1/2))
 
 # %% Generation of a Monte Carlo population in the design space
-n_MC = int(7e4)
+n_MC = 70_000
 
 # the considered variables follow the normal distributions:
-normal_1 = lambda n: np.random.normal(1,   0.1,  n)
-normal_2 = lambda n: np.random.normal(0.1, 0.01, n)
-normal_3 = lambda n: np.random.normal(1,   0.05, n)
-normal_4 = lambda n: np.random.normal(0.5, 0.05, n)
-normal_5 = lambda n: np.random.normal(1,   0.2,  n)
+random_variables = [ lambda n: np.random.normal(  1, 0.05, n),  # m   
+                     lambda n: np.random.normal(  1,  0.1, n),  # c1
+                     lambda n: np.random.normal(0.1, 0.01, n),  # c2
+                     lambda n: np.random.normal(0.5, 0.05, n),  # r 
+                     lambda n: np.random.normal(  1,  0.2, n),  # F1
+                     lambda n: np.random.normal(  1,  0.2, n) ] # t1
 
-var_dists = [normal_1,
-             normal_2,
-             normal_3,
-             normal_4,
-             normal_5,
-             normal_5]
+# %% computation of the AK-MCS algorithm
+N1 = 12
+
+# learning functions to be tested
+               # fun   threshold 
+lfuncs = [ lf.learning_fun_U,
+           lf.learning_fun_EFF,
+           lf.learning_fun_H    ]
+
+for lf in lfuncs:
+    np.random.seed(seed=1234)
+    S, idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar = \
+                                           ak_mcs(random_variables, n_MC, G, lf, N1=N1)
+
+    y = G(S)
+    pf_MCS = (y <= 0).mean()
+
+    plot_conv_pf(N1, list_pf_hat, pf_MCS, lf.name)
+
+
+    # %% plot minimum values of learning function 
+    plot_lim_vals(N1, list_lf_xstar, lf.name, lf.threshold)
+ #%%
+# print results
+'''
+for method in methods:
+    print(f'{method}:')
+    print(methods[method])
+'''    
 
 
 # =============================================================================
@@ -44,28 +76,3 @@ var_dists = [normal_1,
 # methods = {'Monte Carlo': [n_MC, pf_mc,cov]}
 # 
 # =============================================================================
-# %% computation of the AK-MCS algorithm
-# learning functions to be tested
-               # fun   threshold 
-lfuncs = {'U':   [lf.learning_fun_U,   2],
-          'EFF': [lf.learning_fun_EFF, 0.001],
-          'H':   [lf.learning_fun_H,   0.5]}
-
-for fun in lfuncs:
-    results, plot_DoE, plot_y = ak_mcs(var_dists, n_MC, G, lfuncs[fun][0], k=11)    
-    # error = (pf_mc - results[-1,2])/pf_mc*100
-    # store results
-    # methods[f'AK-MCS+{fun}'] = [results[-1,0], results[-1,2], error]    
-    
-# =============================================================================
-#     # %% plot minimum values of learning function 
-#     plot_lim_vals(results, lfuncs[fun][1], fun, 'ex_3', save=True)
-#     
-#     # %% plot convergence of pf
-#     plot_conv(results, pf_mc, fun, ex_name='ex_3', save=True)
-# =============================================================================
- #%%
-# print results
-for method in methods:
-    print(f'{method}:')
-    print(methods[method])

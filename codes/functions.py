@@ -71,6 +71,7 @@ def ak_mcs(var_dists, n_MC, G, learning_fun, N1=12, k=0, std=False):
     # number of random variables
     n = len(var_dists)
 
+    # initial number of points in the design of experiments
     Ni = N1
 
     # Definition of the kernel. 
@@ -151,7 +152,7 @@ def ak_mcs(var_dists, n_MC, G, learning_fun, N1=12, k=0, std=False):
             # build the vector y = G(X) using the calculated and the predicted values
             y[idx_DoE]    = y_DoE
             y[idx_no_DoE] = y_noDoE
-            # estimate the probability of failure (equation 12)
+            # estimate the probability of failure (Echard et. al, equation 12)
             pf_hat = (y <= 0).mean()
             #pf_hat = (np.sum(y_DoE <= 0) + np.sum(y_noDoE <= 0))/n_MC
 
@@ -210,10 +211,11 @@ def ak_mcs(var_dists, n_MC, G, learning_fun, N1=12, k=0, std=False):
             idx_no_DoE = np.setdiff1d(np.arange(n_MC), idx_DoE)
 
             compute_kriging = False
-        else:
-            # STAGE 10: End of AK-MCS
-            break
-    # end while (return to Stage 4)
+            continue # (return to Stage 4)
+
+        # STAGE 10: End of AK-MCS
+        break
+    # end while
 
     # adjustment to include the final values of y and the DoE
     ###########################################################################

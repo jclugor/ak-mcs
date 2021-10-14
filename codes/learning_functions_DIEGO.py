@@ -84,7 +84,7 @@ def learning_fun_U(m, s, idx_DoE):
     extended_U = build_output(U, idx_DoE)
 
     # index of best next point
-    idx_x_ast = extended_U.nanargmin()
+    idx_x_ast = np.nanargmin(extended_U)
 
     # the stopping condition is met when min(U) >= 2
     stop = extended_U[idx_x_ast] >= 2
@@ -147,7 +147,7 @@ def learning_fun_EFF(m, s, idx_DoE):
     extended_EFF = build_output(EFF, idx_DoE)
 
     # index of best next point
-    idx_x_ast = extended_EFF.nanargmax()
+    idx_x_ast = np.nanargmax(extended_EFF)
 
     # the stopping condition is met when max(EFF) <= 0.001
     stop = extended_EFF[idx_x_ast] <= 0.001
@@ -201,7 +201,7 @@ def learning_fun_H(m, s, idx_DoE):
     extended_H = build_output(H, idx_DoE)
 
     # index of best next point
-    idx_x_ast = extended_H.nanargmax()
+    idx_x_ast = np.nanargmax(extended_H)
 
     # the stopping condition is met when max(H) <= 0.5
     stop = extended_H[idx_x_ast] <= 0.5

@@ -1,43 +1,52 @@
 # -*- coding: utf-8 -*-
 """
-The implementation of the AK-MCS algorithm from "AK-MCS: An active learning
-reliability method combining Kriging and Monte Carlo Simulation" by B. Echard
-et al (DOI: 10.1016/j.strusafe.2011.01.002), and some functions to plot results.
+The implementation of the AK-MCS algorithm:
+    
+Echard et. al. (2011) - AK-MCS: An active learning reliability method combining 
+Kriging and Monte Carlo Simulation. Structural Safety. 33. p. 145-154
+https://doi.org/10.1016/j.strusafe.2011.01.002
 
-@author: jclugor
+Authors:
+JCLR - Juan Camilo Lugo Rojas      jclugor@unal.edu.co
+DAAM - Diego Andrés Alvarez Marín  daalvarez@unal.edu.co
+
+DATE          WHO   WHAT
+Oct 13, 2021  JCLR  Algorithm
+Oct 13, 2021  DAAM  Comments and readability
 """
 # %% modules import
 import numpy as np
+import scipy
 import matplotlib.pyplot as plt
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
-from scipy.optimize import minimize
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel
 plt.rcParams['figure.dpi'] = 200
 
 # %% 
-def ak_mcs(X, G, lfun, N1=12, k=0, std=False):
+def ak_mcs(var_dists, n_MC, G, learning_fun, N1=12, k=0, std=False):
     """
     Estimates the probability of failure of a given performance function and a
     Monte Carlo Population using the AK-MCS algorithm
 
-    ak_mcs(X, G, lfun, k=0)
+    ak_mcs(X, G, lfun, N1=12, k=0, std=False)
     
     Parameters
     ----------
-    X : ndarray
-        (NxM) array containing a Monte Carlo population of M variables and
-        N samples.
+    var_dists : list
+        The distributions followed by the random variables
+    n_MC : integer
+        Size of the initial Monte Carlo population
     G : function
         Performance function.
-    lfun : function
-        Learning function to be used by the AK-MCS algorithm.
+    learning_fun : function
+        Learning function to be used by the AK-MCS algorithm (CUALES OPCIONES EXISTEN?)
     N1 : integer
         Size of the initial DoE
     k : integer, optional
         When k > 0, the function returns the estimated value of G(X) with their
         respective DoE every k iterations. The default is 0.
     std : bool, optional
-        Whter it should return the standard deviation every k iterations.
+        Whether it should return the standard deviation every k iterations.
         The default is False.
 
     Returns
@@ -58,120 +67,166 @@ def ak_mcs(X, G, lfun, N1=12, k=0, std=False):
          Not returned if k = 0 or std = False.
 
     """
-    print("The program execution has started.")
-    # get the size and number of variables of the MC population
-    N, n_vars = X.shape
-    N_range = np.arange(N)
-    # initialize y := G(X)
-    y = np.empty(N)
+    # %% STAGE 0: Initialization of variables
+    # number of random variables
+    n = len(var_dists)
 
-    # %% Definition of the initial design of experiments
-    DoE = np.random.choice(N_range, N1)  # initial Design of Experiments
-    no_DoE = np.setdiff1d(N_range, DoE)  # points that are not in the DoE
+    Ni = N1
+
+    # Definition of the kernel. 
+    # It is an anisotrophic squared-exponential kernel (aka Gaussian)
+    kernel =  ConstantKernel() * RBF([1.0]*n, (1e-50, 1e50))
     
-    # %% Computation of the Kriging model accordint to the DoE
-    # initialization of the kernel. It is an anisotrophic squared-exponential
-    # kernel (aka Gaussian)
-    kernel =  C() * RBF([1.0]*n_vars, (1e-50, 1e50))
+    # Definition of the optimizer. 
+    def optim(fun, x0, bounds):
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+        opt = scipy.optimize.minimize(
+                        fun, 
+                        x0, 
+                        method='L-BFGS-B', 
+                        bounds=bounds,
+                        jac=True,               # calculate gradient vector
+                        options={'maxiter':50000})
+        return opt.x, opt.fun
     
-    # definition of a custom optimizer. It uses the same algorithm of the default 
-    # but with a higher number of maximum iterations, to sort out some numerical issues
-    def optim(fun, init, bounds):
-        opt_res = minimize(fun, init, method='L-BFGS-B', bounds=bounds,
-                           jac=True, options={'maxiter':50000})
-        return opt_res.x, opt_res.fun
-    
-    # definition of the GPR
-    gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,
-                                  optimizer=optim, alpha=1e-7)
-    
-    # the model does not need to be fitted right after adding more points to the
-    # Monte Carlo population, so we set this default value that could be changed
-    compute_kriging = True
-    
+    # Definition of the Gaussian Process Regressor
+    # https://scikit-learn.org/stable/modules/generated/sklearn.gaussian_process.GaussianProcessRegressor.html
+    gp = GaussianProcessRegressor(
+                        kernel=kernel, 
+                        n_restarts_optimizer=10,
+                        optimizer=optim, 
+                        alpha=1e-7)
+
+    # %% STAGE 1: Generation of a MC population
+
+    S = np.empty((n_MC, n))
+    for i, dist in enumerate(var_dists):
+        S[:,i] = dist(n_MC)
+
+    # %% STAGE 2: definition of an initial DoE
+    # index of samples that do belong/do not belong to the DoE
+    idx        = np.arange(n_MC)    
+    idx_DoE    = np.random.choice(idx, N1)   # idx samples belong to the DoE
+    idx_no_DoE = np.setdiff1d(idx, idx_DoE)  # idx samples DO NOT belong to the DoE
+
+    # evaluate the points in the DoE
+    X_DoE = S[idx_DoE]  # select the points of the DoE
+    y_DoE = G(X_DoE)    # evaluate the performance function
+
     ###########################################################################
     # store the number of points in the DoE, the stopping criteria and the
     # probability of failure at each iteration to plot them
-    results = np.array([], dtype='float').reshape(0,3)
+    results = np.empty((0,3))
     # if k > 0, store the corresponding values of plot_y and plot_DoE
     plot_9grid = k > 0
     if plot_9grid:
-        plot_y      = np.array([], dtype='float').reshape(N,0)
+        plot_y      = np.empty((n_MC,0))
         plot_DoE    = []
         if std:
-            plot_std = np.array([], dtype='float').reshape(N,0)
+            plot_std = np.empty((n_MC,0))
         i = 0       # counter
-        
-
     ###########################################################################
+    compute_kriging = True
+
+    # initialize y := G(X)
+    y = np.empty(n_MC)
+    
+    # %%
     while True:
         while True:
+            # %% STAGE 3: computation of the Kriging model according to the DoE
             if compute_kriging:
-                X_d = X[DoE]        # select the points of the DoE
-                y_d = G(X_d)        # evaluate the performance function
-                print(f'Using {len(DoE)} points in the DoE')
-                gp.fit(X_d, y_d)    # fit the model to the DoE points evaluation
-    
-            # %% Prediction by Kriging and estimation of the probability of failure
+                gp.fit(X_DoE, y_DoE)
+                print(f'Using {Ni} points in the DoE')
+            compute_kriging = True              
+            
+            # %% STAGE 4: prediction by Kriging and estimation of the
+            #             probability of failure
+            
             # predict the performance function evaluation on the points of the
             # population that are not in the DoE
-            X_p = np.delete(X, DoE, axis=0)
-            (y_p, std_p) = gp.predict(X_p, return_std=True)
+            X_noDoE            = S[idx_no_DoE]
+            y_noDoE, std_noDoE = gp.predict(X_noDoE, return_std=True)
+            
             # build the vector y = G(X) using the calculated and the predicted values
-            y[DoE]    = y_d
-            y[no_DoE] = y_p
-            # estimate the probability of failure
-            pf = (y <= 0).mean()
-            # %% Identification of the best next point in the MC population to
-            # evaluate with the performance function
-            learnF, next_x, stop = lfun(y_p, std_p, DoE)
+            y[idx_DoE]    = y_DoE
+            y[idx_no_DoE] = y_noDoE
+            # estimate the probability of failure (equation 12)
+            pf_hat = (y <= 0).mean()
+            #pf_hat = (np.sum(y_DoE <= 0) + np.sum(y_noDoE <= 0))/n_MC
+
+
+            # %% STAGE 5: Identification of the best next point in S to evaluate
+            #             on the performance function
+            # x_ast is the best next point in S to evaluate
+            lf_x, idx_x_ast, stop = learning_fun(y_noDoE, std_noDoE, idx_DoE)
+
     ###########################################################################
             # store the values
-            results = np.row_stack((results, [[len(DoE), learnF[next_x], pf]]))
+            results = np.row_stack((results, [[Ni, lf_x[idx_x_ast], pf_hat]]))
             if plot_9grid:
                 if (i % k) == 0:
                     plot_y = np.column_stack((plot_y, y))
-                    plot_DoE.append(DoE)
+                    plot_DoE.append(idx_DoE)
                     if std:
-                        tmp = np.empty(N)
-                        tmp[DoE] = 0
-                        tmp[no_DoE] = std_p
+                        tmp = np.empty(n_MC)
+                        tmp[idx_DoE] = 0
+                        tmp[idx_no_DoE] = std_noDoE
                         plot_std = np.column_stack((plot_std, tmp))
                 i += 1
     ###########################################################################
-            #%% Check stopping condition
+            # %% STAGE 6: Stopping condition on learning
+            # Check stopping condition
             if stop:
                 break
-            else:
-            # if the stopping condition is not met, add the point selected by the
-            # learning function to the DoE
-                DoE = np.append(DoE, next_x)
-                no_DoE = np.delete(no_DoE, np.where(no_DoE==next_x))
-                compute_kriging = True
-        # if the stopping condition is met, calculate the coefficient of variation
-        # of the probability of failure
-        cov = np.sqrt((1 - pf)/(pf*len(X)))
-        # if the c.o.v. is too high, the metamodel is not accurate enough, more
+
+            # %% STAGE 7: update the previous design of experiments with the best point
+            # add the point selected by the learning function to the DoE
+            idx_DoE    = np.append(idx_DoE, idx_x_ast)
+            idx_no_DoE = np.delete(idx_no_DoE, np.where(idx_no_DoE==idx_x_ast))            
+            
+            # update the number of samples in the DoE
+            Ni += 1             
+
+            # evaluate x_ast on the true performance function
+            x_ast = S[idx_x_ast]
+            X_DoE = np.row_stack((X_DoE, x_ast))
+            y_DoE = np.append(y_DoE, G(x_ast))
+            # end while (return to Stage 3)
+        
+        # %% STAGE 8: computation of the C.o.V. of the probability of failure
+        # calculate the coefficient of variation (C.o.V.) using equation 13
+        CoV = np.sqrt((1 - pf_hat)/(pf_hat*n_MC))
+
+        # %% STAGE 9: Update the population
+        # if the C.o.V. is too high, the metamodel is not accurate enough, more
         # points have to be added to the MC population and the procedure is repeated
-        if cov >= 0.05:
-            X = np.append(X, np.random.normal(size=(N,2)), axis=0)
-            y = np.append(y, np.empty(N))
-            no_DoE = np.setdiff1d(np.arange(len(y)), DoE)
+        if CoV >= 0.05:
+            # FALTA HACER USANDO LAS PDFs
+            S = np.append(S, np.random.normal(size=(n_MC,2)), axis=0)
+            y = np.append(y, np.empty(n_MC))
+            n_MC *= 2
+
+            idx_no_DoE = np.setdiff1d(np.arange(n_MC), idx_DoE)
+
             compute_kriging = False
         else:
+            # STAGE 10: End of AK-MCS
             break
+    # end while (return to Stage 4)
 
     # adjustment to include the final values of y and the DoE
+    ###########################################################################
     if plot_9grid:
         if len(plot_DoE) > 9:
             plot_DoE = plot_DoE[:9]
             plot_y = plot_y[:,:9]
         if len(plot_DoE) == 9:
-            plot_DoE[-1] = DoE
+            plot_DoE[-1] = idx_DoE
             plot_y[:,-1]   = y
         else:
             plot_y = np.column_stack((plot_y, y))
-            plot_DoE.append(DoE)
+            plot_DoE.append(idx_DoE)
 
     if not plot_9grid:
         to_return = results
@@ -180,6 +235,7 @@ def ak_mcs(X, G, lfun, N1=12, k=0, std=False):
             to_return = (results, plot_DoE, plot_y, plot_std)
         else:
             to_return = (results, plot_DoE, plot_y)
+    ###########################################################################
 
     return to_return
 

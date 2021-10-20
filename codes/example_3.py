@@ -16,7 +16,7 @@ Oct 13, 2021  DAAM  Comments and readability
 """
 # %% modules import
 import numpy as np
-from functions import ak_mcs, plot_conv_pf, plot_lim_vals
+from functions import ak_mcs, plot_conv_pf, plot_learn_criterion
 import learning_functions as lf
 
 # %% performance function
@@ -27,7 +27,7 @@ def G(X):
     return 3*r - np.abs(2*F1/(m*w0**2)*np.sin(w0*t1/2))
 
 # %% Generation of a Monte Carlo population in the design space
-n_MC = 70_000
+n_MC = 70_000      # number of points in the MC population
 
 # the considered variables follow the normal distributions:
 random_variables = [ lambda n: np.random.normal(  1, 0.05, n),  # m   
@@ -38,41 +38,34 @@ random_variables = [ lambda n: np.random.normal(  1, 0.05, n),  # m
                      lambda n: np.random.normal(  1,  0.2, n) ] # t1
 
 # %% computation of the AK-MCS algorithm
-N1 = 12
+N1 = 12    # size of the initial DoE
 
 # learning functions to be tested
-               # fun   threshold 
 lfuncs = [ lf.learning_fun_U,
            lf.learning_fun_EFF,
            lf.learning_fun_H    ]
 
-for lf in lfuncs:
+results = {}
+for lfun in lfuncs:
     np.random.seed(seed=1234)
-    S, idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar = \
-                                           ak_mcs(random_variables, n_MC, G, lf, N1=N1)
+    lf_results = zip(['S', 'idx_DoE', 'y_DoE', 'list_pf_hat', 'list_gp', 'list_lf_xstar'],
+                     ak_mcs(random_variables, n_MC, G, lfun, N1=N1))
+    # S, idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar = \
+    #                                        ak_mcs(random_variables, n_MC, G, lf, N1=N1)
+    results[lfun] = {}
+    for key, value in lf_results:
+        results[lfun][key] = value
 
-    y = G(S)
-    pf_MCS = (y <= 0).mean()
-
-    plot_conv_pf(N1, list_pf_hat, pf_MCS, lf.name)
-
+# %% solution of MCS
+S           = results[lf.learning_fun_U]['S']
+fail_points = G(S) <= 0
+pf_MCS      = fail_points.mean()
+CoV         = np.sqrt((1-pf_MCS)/(pf_MCS*n_MC))
+    
+# %% plot results
+for lfun in lfuncs:
+    plot_conv_pf(N1, results[lfun]['list_pf_hat'], pf_MCS, lfun.name)
 
     # %% plot minimum values of learning function 
-    plot_lim_vals(N1, list_lf_xstar, lf.name, lf.threshold)
- #%%
-# print results
-'''
-for method in methods:
-    print(f'{method}:')
-    print(methods[method])
-'''    
+    plot_learn_criterion(N1, results[lfun]['list_lf_xstar'], lfun.name, lfun.threshold)
 
-
-# =============================================================================
-# # %% solution by MCS
-# fail_points = G(X) <= 0
-# pf_mc = fail_points.mean()
-# cov = np.sqrt((1-pf_mc)/(pf_mc*n_MC))
-# methods = {'Monte Carlo': [n_MC, pf_mc,cov]}
-# 
-# =============================================================================

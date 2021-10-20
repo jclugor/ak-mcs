@@ -26,7 +26,7 @@ def build_output(lf_xnoDOE, idx_DoE):
         values obtained by evaluating the learning function in the points that 
         do not belong to the design of experiments
     idx_DoE : ndarray (1D array, int)
-        index of the points that conform the design of experiments
+        index of the points of S that comprise the design of experiments
     
     Returns
     -------
@@ -70,12 +70,14 @@ def learning_fun_U(m, s, idx_DoE):
         mean given by a Kriging model
     s : ndarray (1D array, float)
         standard deviation given by a Kriging model
-
+    idx_DoE : ndarray (1D array, int)
+        index of the points of S that comprise the design of experiments
+    
     Returns
     -------
     extended_U: ndarray (1D array, float)
         value of the learning function U 
-    idx_x_ast: integer
+    idx_x_ast: int
         index of the best next point, that is, the index of the point in the
         population that is expected to best improve training.
     stop: bool
@@ -117,12 +119,14 @@ def learning_fun_EFF(m, s, idx_DoE):
         mean given by a Kriging model
     s : ndarray (1D array, float)
         standard deviation given by a Kriging model
-
+    idx_DoE : ndarray (1D array, int)
+        index of the points of S that comprise the design of experiments
+    
     Returns
     -------
     extended_EFF: ndarray (1D array, float)
         value of the learning function EFF
-    idx_x_ast: integer
+    idx_x_ast: int
         index of the best next point, that is, the index of the point in the
         population that is expected to best improve training.
     stop: bool
@@ -182,12 +186,14 @@ def learning_fun_H(m, s, idx_DoE):
         mean given by a Kriging model
     s : ndarray (1D array, float)
         standard deviation given by a Kriging model
-
+    idx_DoE : ndarray (1D array, int)
+        index of the points of S that comprise the design of experiments
+    
     Returns
     -------
     extended_H: ndarray (1D array, float)
         value of the learning function H
-    idx_x_ast: integer
+    idx_x_ast: int
         index of the best next point, that is, the index of the point in the
         population that is expected to best improve training.
     stop: bool

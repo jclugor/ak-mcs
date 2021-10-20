@@ -41,22 +41,25 @@ def ak_mcs(random_variables, n_MC, G, learning_fun, N1=12):
         Performance function.
     learning_fun : function
         Learning function to be used by the AK-MCS algorithm (CUALES OPCIONES EXISTEN?)
-    N1 : integer
-        Size of the initial DoE
+    N1 : integer, optional
+        Size of the initial DoE. The default value is 12.
 
     Returns
     -------
-    S
-    
-    idx_DoE
-    
-    y_DoE
-    
-    list_pf_hat
-    
-    list_gp
-    
-    list_lf_xstar
+    S : ndarray
+        Monte Carlo population of n_MC points generated from random_variables.
+        Each row is a random sample from the design space.
+    idx_DoE : ndarray
+        index of the points of S that comprise the design of experiments
+    y_DoE : ndarray
+        performance function evaluated on the DoE
+    list_pf_hat : list
+        probability of failure estimated at each iteration of the method
+    list_gp : list
+        GaussianProcessRegressor trained at each iteration of the method
+    list_lf_xstar : list
+        the learning function evaluated at the best next point at each iteration
+        according to the learning criterion
     """
     # %% STAGE 0: Initialization of variables
     # number of random variables
@@ -184,26 +187,23 @@ def ak_mcs(random_variables, n_MC, G, learning_fun, N1=12):
     return S, idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar
 
 # %%
-#cambiar nombre
-def plot_lim_vals(N1, list_lf_xstar, lf_name, lf_threshold):
+def plot_learn_criterion(N1, list_lf_xstar, lf_name, lf_threshold):
     """
-    Plots # of points in DoE vs limit value of learning function
+    Plots number of points in the DoE vs learning criterion of learning function
+
+    plot_learn_criterion(N1, list_lf_xstar, lf_name, lf_threshold)
 
     Parameters
     ----------
-
-ARREGLAR
-
-    results : ndarray
-        Array of results returned by ak_mcs().
-    threshold : float
-        Threshold to be met by the limit value of the learning function.
-    fun_name : string
-        Learning function name.
-    ex_name : string, optional
-        Exercise name, used in the name of the saved file. The default is None.
-    save : bool, optional
-        Wheter the produced figure have to be saved or not. The default is False.
+    N1 : integer
+        size of the initial DoE
+    list_lf_xstar : list
+        the learning function evaluated at the best next point at each iteration
+        according to the learning criterion
+    lf_name : string
+        name of the learning function
+    lf_threshold : float
+        value at which the stopping condition of the learning function is met
 
     Returns
     -------
@@ -229,18 +229,18 @@ def plot_conv_pf(N1, list_pf_hat, pf_MCS, lf_name):
     """   
     Plots the convergence of the estimated probability of failure.
 
+    plot_conv_pf(N1, list_pf_hat, pf_MCS, lf_name)
+
     Parameters
     ----------
-    results : ndarray
-        Array of results returned by ak_mcs().
-    pf_mc : float
-        Proability of failure estimated by the corresponding MCS.
-    fun_name : string
-        Learning function name.
-    ex_name : string, optional
-        Exercise name, used in the name of the saved file. The default is None.
-    save : bool, optional
-        Wheter the produced figure have to be saved or not. The default is False.
+    N1 : integer
+        size of the initial DoE
+    list_pf_hat : list
+        probability of failure estimated at each iteration of the method
+    pf_MCS : float
+        probability of failure estimated by the Monte Carlo Simulation
+    lf_name : string
+        name of the learning function
 
     Returns
     -------
@@ -259,19 +259,18 @@ def plot_conv_pf(N1, list_pf_hat, pf_MCS, lf_name):
 
 # %% The following functions should only be used with 2D examples.
 # %%
-def plot_mc(X, fail_points, pf_mc, ex_name=None, save=False):
+def plot_mc(S, fail_points, pf_MCS, ex_name=None, save=False):
     """
-    Plots the Monte Carlo population with its corresponding values of G(x) > 0
+    Plots the Monte Carlo population with its corresponding values of G(S) > 0
 
     Parameters
     ----------
-    X : ndarray
+    S : ndarray
         The MC population.
     fail_points : ndarray
-        1D array containing data with `bool` type. Indexes of the samples from
-        X for which G(x) <= 0
-    pf_mc : float
-        Proability of failure estimated by the corresponding MCS.
+        Indexes of the samples from S for which G(x) <= 0
+    pf_MCS : float
+        Proability of failure estimated by the MCS.
     ex_name : string, optional
         Exercise name, used in the name of the saved file. The default is None.
     save : bool, optional
@@ -282,18 +281,19 @@ def plot_mc(X, fail_points, pf_mc, ex_name=None, save=False):
     None.
 
     """
-    plt.plot(X[~fail_points, 0], X[~fail_points, 1], '.b', ms=1, label='$G(x_i) > 0$')
-    plt.plot(X[fail_points, 0], X[fail_points, 1], '.r', ms=1, label='$G(x_i) \leq 0$')
+    plt.plot(S[~fail_points, 0], S[~fail_points, 1], '.b', ms=1, label='$G(x_i) > 0$')
+    plt.plot(S[fail_points, 0], S[fail_points, 1], '.r', ms=1, label='$G(x_i) \leq 0$')
     plt.xlabel('$x_1$')
     plt.ylabel('$x_2$')
     plt.axis('equal')
     lgnd = plt.legend()
     lgnd.legendHandles[0]._legmarker.set_markersize(10)
     lgnd.legendHandles[1]._legmarker.set_markersize(10)
-    plt.title(f'Performance function applied to the MC population: $p_f = {pf_mc}$')
+    plt.title(f'Performance function applied to the MC population: $p_f = {pf_MCS}$')
     if save:
         plt.savefig(f'mc_{ex_name}.png')
     plt.show()
+
 # %%
 def plot_iter(X, plot_y, plot_DoE, ex_name=None, save=False):
     """

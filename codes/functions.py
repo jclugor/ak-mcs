@@ -20,7 +20,34 @@ import scipy
 import matplotlib.pyplot as plt
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel
+from copy import deepcopy
 plt.rcParams['figure.dpi'] = 200
+
+#%%
+def mc_population(random_variables, n_MC):
+    """
+    Generates a Monte Carlo population of n_MC samples from the given random
+    variables.
+
+    S = mc_population(random_variables, n_MC)
+
+    Parameters
+    ----------
+    random_variables : list
+        list of random variables
+    n_MC : integer
+        Size of the initial Monte Carlo population
+
+    Returns
+    -------
+    S : ndarray (2D array, float)
+        Monte Carlo population of n_MC points generated from random_variables.
+        Each row is a random sample from the design space.
+    """
+    S = np.empty((n_MC, len(random_variables)))
+    for i, rv in enumerate(random_variables):
+        S[:,i] = rv(n_MC)
+    return S
 
 # %% 
 def ak_mcs(random_variables, n_MC, G, learning_fun, N1=12):
@@ -28,7 +55,7 @@ def ak_mcs(random_variables, n_MC, G, learning_fun, N1=12):
     Estimates the probability of failure of a given performance function and a
     Monte Carlo Population using the AK-MCS algorithm
 
-    S, idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar = \
+    idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar = \
                           ak_mcs(random_variables, n_MC, G, learning_fun, N1=12)
     
     Parameters
@@ -46,12 +73,9 @@ def ak_mcs(random_variables, n_MC, G, learning_fun, N1=12):
 
     Returns
     -------
-    S : ndarray
-        Monte Carlo population of n_MC points generated from random_variables.
-        Each row is a random sample from the design space.
-    idx_DoE : ndarray
+    idx_DoE : ndarray (1D array, integer)
         index of the points of S that comprise the design of experiments
-    y_DoE : ndarray
+    y_DoE : ndarray (1D array, float)
         performance function evaluated on the DoE
     list_pf_hat : list
         probability of failure estimated at each iteration of the method
@@ -98,9 +122,7 @@ def ak_mcs(random_variables, n_MC, G, learning_fun, N1=12):
                         alpha=1e-7)
 
     # %% STAGE 1: Generation of a MC population
-    S = np.empty((n_MC, n))
-    for i, rv in enumerate(random_variables):
-        S[:,i] = rv(n_MC)
+    S = mc_population(random_variables, n_MC)
 
     # %% STAGE 2: definition of an initial DoE
     # index of samples that do belong/do not belong to the DoE
@@ -119,7 +141,7 @@ def ak_mcs(random_variables, n_MC, G, learning_fun, N1=12):
             # %% STAGE 3: computation of the Kriging model according to the DoE
             if compute_kriging:
                 gp.fit(X_DoE, y_DoE)
-                list_gp.append(gp)
+                list_gp.append(deepcopy(gp))
                 print(f'Using {Ni} points in the DoE')
             compute_kriging = True              
             
@@ -168,10 +190,7 @@ def ak_mcs(random_variables, n_MC, G, learning_fun, N1=12):
         # if the C.o.V. is too high, the metamodel is not accurate enough, more
         # points have to be added to the MC population and the procedure is repeated
         if CoV >= 0.05:
-            S_new = np.empty((n_MC, n))
-            for i, rv in enumerate(random_variables):
-                S_new[:,i] = rv(n_MC)
-
+            S_new = mc_population(random_variables, n_MC)
             S = np.append(S, S_new, axis=0)
             n_MC *= 2
 
@@ -184,10 +203,10 @@ def ak_mcs(random_variables, n_MC, G, learning_fun, N1=12):
         break
     # end while
 
-    return S, idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar
+    return idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar
 
 # %%
-def plot_learn_criterion(N1, list_lf_xstar, lf_name, lf_threshold):
+def plot_learn_criterion(N1, list_lf_xstar, lf):
     """
     Plots number of points in the DoE vs learning criterion of learning function
 
@@ -200,10 +219,8 @@ def plot_learn_criterion(N1, list_lf_xstar, lf_name, lf_threshold):
     list_lf_xstar : list
         the learning function evaluated at the best next point at each iteration
         according to the learning criterion
-    lf_name : string
-        name of the learning function
-    lf_threshold : float
-        value at which the stopping condition of the learning function is met
+    lf : function
+        learning function
 
     Returns
     -------
@@ -212,11 +229,11 @@ def plot_learn_criterion(N1, list_lf_xstar, lf_name, lf_threshold):
     """
     n_samples = N1 + np.arange(len(list_lf_xstar))    
     plt.plot(n_samples, list_lf_xstar, '.')
-    plt.axhline(lf_threshold, 0, 1, ls='--', c='red', lw=1, label='threshold')
+    plt.axhline(lf.threshold, 0, 1, ls='--', c='red', lw=1, label='threshold')
     plt.xlabel('Number of calls to $G$')
     plt.yscale('log')
     plt.ylabel('Learning function value for $x^*$')
-    plt.title(f'Variation of the learning function {lf_name} for $x^*$')
+    plt.title(f'Variation of the learning function {lf.name} for $x^*$')
     #plt.savefig(f'conv_{ex_name}_{lf_name}.svg')
     plt.legend()
     plt.show()
@@ -267,7 +284,7 @@ def plot_mc(S, fail_points, pf_MCS, ex_name=None, save=False):
     ----------
     S : ndarray
         The MC population.
-    fail_points : ndarray
+    fail_points : (1D array, bool)
         Indexes of the samples from S for which G(x) <= 0
     pf_MCS : float
         Proability of failure estimated by the MCS.
@@ -282,7 +299,7 @@ def plot_mc(S, fail_points, pf_MCS, ex_name=None, save=False):
 
     """
     plt.plot(S[~fail_points, 0], S[~fail_points, 1], '.b', ms=1, label='$G(x_i) > 0$')
-    plt.plot(S[fail_points, 0], S[fail_points, 1], '.r', ms=1, label='$G(x_i) \leq 0$')
+    plt.plot(S[ fail_points, 0], S[ fail_points, 1], '.r', ms=1, label='$G(x_i) \leq 0$')
     plt.xlabel('$x_1$')
     plt.ylabel('$x_2$')
     plt.axis('equal')
@@ -295,7 +312,8 @@ def plot_mc(S, fail_points, pf_MCS, ex_name=None, save=False):
     plt.show()
 
 # %%
-def plot_iter(X, plot_y, plot_DoE, ex_name=None, save=False):
+# S, idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar
+def plot_iter(S, N1, idx_DoE, y_DoE, list_gp, ex_name=None, save=False):
     """
     Plots the MC population and its predicted values of G(x) > 0 at 9 stages
 
@@ -340,7 +358,7 @@ def plot_iter(X, plot_y, plot_DoE, ex_name=None, save=False):
     plt.show()
 
 # %% 
-def plot_1d(X, G, plot_y, plot_DoE, plot_std, ex_name=None, save=False):
+def plot_1d(S, G, idx_DoE, list_gp, N1):
     """
     Plot 1D MC population, its predicted values, DoE and standard deviation.
 
@@ -366,17 +384,25 @@ def plot_1d(X, G, plot_y, plot_DoE, plot_std, ex_name=None, save=False):
     None.
 
     """
+    S_plot = S.flatten()
+    n_DoE_iters = np.round(np.linspace(N1, len(idx_DoE), 9)).astype('int')
     fig, axes = plt.subplots(3,3, figsize=(9, 9), sharey=True, sharex=True)
     for i in range(9):
         ax = axes.flatten()[i]
-        to_plot = np.column_stack((X, plot_y[:,i], plot_std[:,i]))
-        to_plot = to_plot[to_plot[:,0].argsort()]
-        ax.plot(X, plot_y[:,i], '.b', ms=1)
-        ax.plot(X[plot_DoE[i]], plot_y[plot_DoE[i],i], 'xg', ms=5, label='DoE')
-        ax.fill_between(to_plot[:,0], to_plot[:,1] + to_plot[:,2],
-                        to_plot[:,1] - to_plot[:,2], alpha=0.3)
-        ax.axhline(0, X.min(), X.max(), ls='--', c='red', lw=1, label='G(x) = 0')
-        ax.set_title(f'$n = {len(plot_DoE[i])}$')
+        n_DoE = n_DoE_iters[i]
+        idx_gp = n_DoE - N1   # list_gp has (N1-1) less elements than idx_DoE
+        gp = list_gp[idx_gp]
+        y, std = gp.predict(S, return_std=True)
+        ax.plot(S_plot, y, '.b', ms=1)
+        ax.plot(S_plot[idx_DoE[:n_DoE]], y[idx_DoE[:n_DoE]], 'xg', ms=5, label='DoE')
+        
+        # fill_between needs sorted array, but can't sort from the beginning
+        # because of DoE indexes
+        sorted_idx = np.argsort(S_plot)
+        y = y[sorted_idx]; std = std[sorted_idx]
+        ax.fill_between(S_plot[sorted_idx], y + std, y - std, alpha=0.3)
+        ax.axhline(0, S_plot.min(), S_plot.max(), ls='--', c='red', lw=1)
+        ax.set_title(f'$n = {n_DoE}$')
     
     fig.supxlabel('$x$')
     fig.supylabel('$G(x)$')
@@ -384,6 +410,4 @@ def plot_1d(X, G, plot_y, plot_DoE, plot_std, ex_name=None, save=False):
     fig.legend(handles, labels, loc=(0.1, 0.87))
     fig.suptitle('Adjustment of the new points in DoE')
     plt.tight_layout()
-    if save:
-        plt.savefig(f'1d_{ex_name}.png')
     plt.show()

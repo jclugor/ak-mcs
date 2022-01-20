@@ -2,35 +2,46 @@
 """
 Example to illustrate how does the method select the points to be added to the DoE
 
-@author: jclugor
+Author:
+JCLR - Juan Camilo Lugo Rojas      jclugor@unal.edu.co
 """
 # %% modules import
 import numpy as np
-from functions import ak_mcs, plot_1d
 import learning_functions as lf
+from functions import ak_mcs, mc_population, plot_1d
 
 # %% performance function
 def G(X):
     return np.sin(X).flatten()
 
 # %% Generation of a Monte Carlo population in the design space
-N = int(1e4)
-X = np.random.normal(0, 2, size=(N,1))
+n_MC = 10_000       # number of points in the MC population
 
-# %% computation of the AK-MCS algorithm
-results, plot_DoE, plot_y, plot_std = ak_mcs(X, G, lf.U, 5, k=1, std=True)
+random_variables = [ lambda n: np.random.normal(0, 2, n)]
+S = np.random.normal(0, 2, size=(n_MC,1))
 
 # %% solution by MCS
-fail_points = G(X) <= 0
-pf_mc = fail_points.mean()
-cov = np.sqrt((1-pf_mc)/(pf_mc*N))
+seed = 2222  # random seed to generate the MC population
+np.random.seed(seed=seed)
+S = mc_population(random_variables, n_MC)
+fail_points = G(S) <= 0
+pf_MCS      = fail_points.mean()
+CoV         = np.sqrt((1-pf_MCS)/(pf_MCS*n_MC))
+
+# %% computation of the AK-MCS algorithm
+N1 = 5     # size of the initial DoE
+
+np.random.seed(seed=seed)
+idx_DoE, y_DoE, list_pf_hast, list_gp, list_lf_xstar = \
+                   ak_mcs(random_variables, n_MC, G, lf.learning_fun_U, N1)
+
 
 # %% results
-plot_1d(X, G, plot_y, plot_DoE, plot_std, save=True, ex_name='exa_1d')
-error = (pf_mc - results[-1,2])/pf_mc*100
-print_res = {'Monte Carlo': [N, pf_mc,cov],
-             'AK-MCS+U':[results[-1,0], results[-1,2], error]}
+plot_1d(S, G, idx_DoE, list_gp, N1)
+# error = (pf_mc - results[-1,2])/pf_mc*100
+# print_res = {'Monte Carlo': [n_MC, pf_mc,cov],
+#              'AK-MCS+U':[results[-1,0], results[-1,2], error]}
 
-for method in print_res:
-    print(f'{method}:')
-    print(print_res[method])
+# for method in print_res:
+#     print(f'{method}:')
+#     print(print_res[method])

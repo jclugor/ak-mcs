@@ -276,7 +276,7 @@ def plot_conv_pf(N1, list_pf_hat, pf_MCS, lf_name):
 
 # %% The following functions should only be used with 2D examples.
 # %%
-def plot_mc(S, fail_points, pf_MCS, ex_name=None, save=False):
+def plot_mc(S, fail_points, pf_MCS):
     """
     Plots the Monte Carlo population with its corresponding values of G(S) > 0
 
@@ -307,13 +307,11 @@ def plot_mc(S, fail_points, pf_MCS, ex_name=None, save=False):
     lgnd.legendHandles[0]._legmarker.set_markersize(10)
     lgnd.legendHandles[1]._legmarker.set_markersize(10)
     plt.title(f'Performance function applied to the MC population: $p_f = {pf_MCS}$')
-    if save:
-        plt.savefig(f'mc_{ex_name}.png')
     plt.show()
 
 # %%
 # S, idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar
-def plot_iter(S, N1, idx_DoE, y_DoE, list_gp, ex_name=None, save=False):
+def plot_iter(S, N1, idx_DoE, y_DoE, list_gp):
     """
     Plots the MC population and its predicted values of G(x) > 0 at 9 stages
 
@@ -335,15 +333,20 @@ def plot_iter(S, N1, idx_DoE, y_DoE, list_gp, ex_name=None, save=False):
     None.
 
     """
+    n_DoE_iters = np.round(np.linspace(N1, len(idx_DoE), 9)).astype('int')
     fig, axes = plt.subplots(3,3, figsize=(9, 9), sharey=True, sharex=True)
     for i in range(9):
         ax = axes.flatten()[i]
-        fail_points = plot_y[:,i] <= 0
+        n_DoE = n_DoE_iters[i]
+        idx_gp = n_DoE - N1   # list_gp has (N1-1) less elements than idx_DoE
+        gp = list_gp[idx_gp]
+        y = gp.predict(S)
+        fail_points = y <= 0
         pf_i = fail_points.mean()
-        ax.plot(X[~fail_points, 0], X[~fail_points, 1], '.b', ms=1, label='$G(x_i) > 0$')
-        ax.plot(X[fail_points, 0], X[fail_points, 1], '.r', ms=1, label='$G(x_i) \leq 0$')
-        ax.plot(X[plot_DoE[i], 0], X[plot_DoE[i], 1], 'x', color='lime', ms=10, label='DoE')
-        ax.set_title(f'$n = {len(plot_DoE[i])}$, $p_f = {pf_i}$')
+        ax.plot(S[~fail_points, 0], S[~fail_points, 1], '.b', ms=1, label='$G(x_i) > 0$')
+        ax.plot(S[fail_points, 0], S[fail_points, 1], '.r', ms=1, label='$G(x_i) \leq 0$')
+        ax.plot(S[idx_DoE[:n_DoE], 0], S[idx_DoE[:n_DoE], 1], 'x', color='lime', ms=10, label='DoE')
+        ax.set_title(f'$n = {n_DoE}$, $p_f = {pf_i}$')
     
     fig.supxlabel('$x_1$')
     fig.supylabel('$x_2$')
@@ -353,8 +356,6 @@ def plot_iter(S, N1, idx_DoE, y_DoE, list_gp, ex_name=None, save=False):
     lgnd.legendHandles[0]._legmarker.set_markersize(10)
     lgnd.legendHandles[1]._legmarker.set_markersize(10)
     plt.tight_layout()
-    if save:
-        plt.savefig(f'iter_{ex_name}.png')
     plt.show()
 
 # %% 
@@ -397,7 +398,7 @@ def plot_1d(S, G, idx_DoE, list_gp, N1):
         ax.plot(S_plot[idx_DoE[:n_DoE]], y[idx_DoE[:n_DoE]], 'xg', ms=5, label='DoE')
         
         # fill_between needs sorted array, but can't sort from the beginning
-        # because of DoE indexes
+        # because of the DoE indexes
         sorted_idx = np.argsort(S_plot)
         y = y[sorted_idx]; std = std[sorted_idx]
         ax.fill_between(S_plot[sorted_idx], y + std, y - std, alpha=0.3)

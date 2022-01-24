@@ -8,55 +8,56 @@ et al (DOI: 10.1016/j.strusafe.2011.01.002)
 """
 # %% modules import
 import numpy as np
-from functions import ak_mcs, plot_conv, plot_lim_vals, plot_mc, plot_iter
+from functions import ak_mcs, mc_population, plot_conv_pf, plot_learn_criterion, plot_mc, plot_iter
 import learning_functions as lf
 
 # %% performance function
 # a series system of four branches
 # it is tested with k=6 and k=7
 
-def G(X, k=7):
-    g = np.empty((len(X), 4))
-    g[:,0] = 3 + 0.1*(X[:,0] - X[:,1])**2 - (X[:,0] + X[:,1])/np.sqrt(2)
-    g[:,1] = 3 + 0.1*(X[:,0] - X[:,1])**2 + (X[:,0] + X[:,1])/np.sqrt(2)
-    g[:,2] = X[:,0] - X[:,1] + k/np.sqrt(2)
-    g[:,3] = X[:,1] - X[:,0] + k/np.sqrt(2)
+def G(S, k=7):
+    S = np.atleast_2d(S).copy()
+    g = np.empty((len(S), 4))
+    g[:,0] = 3 + 0.1*(S[:,0] - S[:,1])**2 - (S[:,0] + S[:,1])/np.sqrt(2)
+    g[:,1] = 3 + 0.1*(S[:,0] - S[:,1])**2 + (S[:,0] + S[:,1])/np.sqrt(2)
+    g[:,2] = S[:,0] - S[:,1] + k/np.sqrt(2)
+    g[:,3] = S[:,1] - S[:,0] + k/np.sqrt(2)
     return g.min(axis=1)
 
 # %% Generation of a Monte Carlo population in the design space
-N = int(1e6)
+n_MC = 1_000_000    # number of points in the design space
+
 # the two considered variables follow a standard normal distribution
-X = np.random.normal(size=(N,2))
+random_variables = [lambda n: np.random.normal(size= n)] * 2
 
 # %% solution by MCS
-fail_points = G(X) <= 0
-pf_mc = fail_points.mean()
-cov = np.sqrt((1-pf_mc)/(pf_mc*N))
-methods = {'Monte Carlo': [N, pf_mc,cov]}
+seed = 1234     # random seed to generate the MC population
+np.random.seed(seed=seed)
+S = mc_population(random_variables, n_MC)
+fail_points = G(S) <= 0
+pf_MCS      = fail_points.mean()
+CoV         = np.sqrt((1-pf_MCS)/(pf_MCS*n_MC))
 
-plot_mc(X, fail_points, pf_mc, ex_name='ex_2D_k7', save=True)
+plot_mc(S, fail_points, pf_MCS)
 # %% computation of the AK-MCS algorithm
+N1 = 12    # size of the initial DoE
+
 # learning functions to be tested
-               # fun   threshold 
-lfuncs = {'U':   [lf.U,   2],
-          'EFF': [lf.EFF, 0.001],
-          'H':   [lf.H,   0.5]}
+lfuncs = [lf.learning_fun_U,
+          lf.learning_fun_EFF,
+          lf.learning_fun_H    ]
 
-for fun in lfuncs:
-    results, plot_DoE, plot_y = ak_mcs(X, G, lfuncs[fun][0], k=11)    
-    error = (pf_mc - results[-1,2])/pf_mc*100
-    # store results
-    methods[f'AK-MCS+{fun}'] = [results[-1,0], results[-1,2], error]    
+for lfun in lfuncs:
+    np.random.seed(seed=seed)
+    idx_DoE, y_DoE, list_pf_hat, list_gp, list_lf_xstar = \
+                                  ak_mcs(random_variables, n_MC, G, lfun, N1)
+
+# %% plot results
+    plot_conv_pf(N1, list_pf_hat, pf_MCS, lfun.name)
+
+    # %% plot minimum values of learning function 
+    plot_learn_criterion(N1, list_lf_xstar, lfun)
+
     # %% plot predicted failure through the iterations
-    plot_iter(X, plot_y, plot_DoE, ex_name=f'ex_2D_k7_{fun}', save=True)
+    plot_iter(S, N1, idx_DoE, y_DoE, list_gp)
     
-    # %% plot minima values of learning function 
-    plot_lim_vals(results, lfuncs[fun][1], fun, 'ex_2D_k7', save=True)
-    
-    # %% plot convergence of pf
-    plot_conv(results, pf_mc, fun, ex_name='ex_2D_k7', save=True)
-
-# print results
-for method in methods:
-    print(f'{method}:')
-    print(methods[method])

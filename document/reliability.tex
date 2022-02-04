@@ -1,5 +1,7 @@
 \chapter{Some concepts of Structural Reliability}
 \label{ch:2}
+This chapter defines the concept of probability of failure and how it is calculated, and briefly reviews some methods to contextualize the subsequent work. It is based mostly on \citep{Hurtado2013} and \citep{Melchers2018}.\\
+
 \section{Reliability problem formulation}
 The reliability problem is based on the performance function $G(\bm{x})$ defined as:
 \begin{equation} \label{eq:1}
@@ -104,7 +106,7 @@ where $f_{\bm{x}}(\bm{x})$ is the joint probability density function of the cons
 The analysis methods used to estimate \ref{eq:pfint} can be divided into two main categories: analytic and synthetic. The former are based on the Taylor series expansion of the limit state function, while the latter require the generation of random samples of the variables associated with the model. In this section we will review some generalities of these two categories, their applicability and limitations, with a particular focus on the latter, to which the method reviewed in this document corresponds.
 
 \subsection{Analytic methods (FORM and SORM)}
-The \textit{First} and \textit{Second Order Reliability Methods} require the transformation of the vector $\bm{x}$, defined by their joint density function $f_{\bm{x}}$, into a set of normally distributed independent variables $\bm{u}$. The Taylor series expansion of $G(\bm{u})$ is considered, of first order when using FORM, and of second order in the case of SORM. Iteratively, it is obtained the denominated design point $\bm{u^*}$ by minimizing its distance from the origin such that $G(\bm{u*})=0$. By considering the Taylor series expansion at the design point, a hyperplane is obtained, such that it divides the design space (the possible values taken by the input variables) into the failure and the safe domain. \\
+The \textit{First} and \textit{Second Order Reliability Methods} require the transformation of the vector $\bm{x}$, defined by their joint density function $f_{\bm{x}}$, into a set of normally distributed independent variables $\bm{u}$. The Taylor series expansion of $G(\bm{u})$ is considered, of first order when using FORM, and of second order in the case of SORM. Iteratively, it is obtained the denominated design point $\bm{u^*}$ by minimizing its distance from the origin such that $G(\bm{u^*})=0$. By considering the Taylor series expansion at the design point, a hyperplane is obtained, such that it divides the design space (the possible values taken by the input variables) into the failure and the safe domain. \\
 
 As these methods require the calculation of the gradient of the performance function, in addition to the Hessian matrix in the case of SORM, the practicality of their application depends heavily on the form of the performance matrix, greatly increasing the complexity of the calculations when the dimensionality of the problem increases. \\
 
@@ -135,9 +137,9 @@ But equation \ref{eq:pfmc} corresponds to the expected value of $I\bracket{G(\bm
     p_f \approx \frac{1}{n_{MC}} \sum_{j = 1}^{n_{MC}} I\bracket{G(\bm{\hat{x}_j}) \leq 0}
 \end{equation}
 
-This estimated value of $p_f$, since it depends on a random sample, can vary considerably. A measure of such variation is the coefficient of variation, which is defined as:
+This estimated value of $p_f$, since it depends on a random sample, is itself a random variable. A measure of how much its value can vary is the coefficient of variation, which is defined as:
 
-\begin{equation}
+\begin{equation} \label{eq:cov}
     \text{C.O.V}_{p_f} = \sqrt{\frac{1-p_f}{p_f \; n_{MC}}}
 \end{equation}
 

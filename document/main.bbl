@@ -1,4 +1,4 @@
-\begin{thebibliography}{14}
+\begin{thebibliography}{17}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -52,6 +52,12 @@ B.~Echard, N.~Gayton, and M.~Lemaire.
 \newblock \emph{Structural Safety}, 33:\penalty0 145--154, 2011.
 \newblock \doi{10.1016/j.strusafe.2011.01.002}.
 
+\bibitem[Hurtado(2013)]{Hurtado2013}
+J.~Hurtado.
+\newblock \emph{Structural Reliability: Statistical Learning Perspectives}.
+\newblock Springer Berlin Heidelberg, first edition, 2013.
+\newblock ISBN 9783540409878.
+
 \bibitem[Lemaire(2009)]{Lemaire2009}
 M.~Lemaire.
 \newblock \emph{Structural Reliabiity}.
@@ -86,6 +92,16 @@ A.~Nowak and K.~Collins.
 \newblock McGraw-Hill, first edition, 2000.
 \newblock ISBN 0-07-048163-6.
 
+\bibitem[Pedregosa et~al.(2011)Pedregosa, Varoquaux, Gramfort, Michel, Thirion,
+  Grisel, Blondel, Prettenhofer, Weiss, Dubourg, Vanderplas, Passos,
+  Cournapeau, Brucher, Perrot, and Duchesnay]{scikit-learn}
+F.~Pedregosa, G.~Varoquaux, A.~Gramfort, V.~Michel, B.~Thirion, O.~Grisel,
+  M.~Blondel, P.~Prettenhofer, R.~Weiss, V.~Dubourg, J.~Vanderplas, A.~Passos,
+  D.~Cournapeau, M.~Brucher, M.~Perrot, and E.~Duchesnay.
+\newblock Scikit-learn: Machine learning in {P}ython.
+\newblock \emph{Journal of Machine Learning Research}, 12:\penalty0 2825--2830,
+  2011.
+
 \bibitem[Peijuan et~al.(2017)Peijuan, Ming, Zhouhong, and Liqi]{Peijuan2017}
 Z.~Peijuan, W.~Ming, Z.~Zhouhong, and W.~Liqi.
 \newblock A new active learning method based on the learning function {U} of
@@ -93,8 +109,14 @@ Z.~Peijuan, W.~Ming, Z.~Zhouhong, and W.~Liqi.
 \newblock \emph{Engineering Structures}, 148:\penalty0 185--194, 2017.
 \newblock \doi{10.1016/j.engstruct.2017.06.038}.
 
-\bibitem[Schueremans and Gemert(2005)]{Schu2005}
-L.~Schueremans and D.~Van Gemert.
+\bibitem[Rasmussen and Williams(2006)]{RW}
+C.~Rasmussen and C.~Williams.
+\newblock \emph{Gaussian Processes for Machine Learning}.
+\newblock MIT Press, first edition, 2006.
+\newblock ISBN 0-262-18253-X.
+
+\bibitem[Schueremans and Gemert(2005)]{Schueremans2005}
+L.~Schueremans and D.~Gemert.
 \newblock Benefit of splines and neural networks in simulation based structural
   reliability analysis.
 \newblock \emph{Structural Safety}, 27:\penalty0 246--261, 2005.

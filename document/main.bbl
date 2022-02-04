@@ -1,4 +1,4 @@
-\begin{thebibliography}{9}
+\begin{thebibliography}{14}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -9,7 +9,7 @@
 M.~Balesdent, J.~Morio, and J.~Marzat.
 \newblock Krigin-based adaptive importance sampling algorithms for rare event
   estimation.
-\newblock \emph{Structural Safety}, 44\penalty0 (1-10), 2013.
+\newblock \emph{Structural Safety}, 44:\penalty0 1--10, 2013.
 \newblock \doi{10.1016/j.strusafe.2013.04.001}.
 
 \bibitem[Bichon et~al.(2008)Bichon, Eldred, Swiler, Mahadevan, and
@@ -20,26 +20,59 @@ B.~Bichon, M.~Eldred, L.~Swiler, S.~Mahadevan, and J.~McFarland.
 \newblock \emph{AIAA Journal}, 46\penalty0 (10), 2008.
 \newblock \doi{10.2514/1.34321}.
 
+\bibitem[Bishop(2006)]{Bishop}
+C.~Bishop.
+\newblock \emph{Pattern Recognition and Machine Learning}.
+\newblock Springer, first edition, 2006.
+\newblock ISBN 979-0387-31073-8.
+
+\bibitem[Box and Muller(1958)]{BM}
+G.~Box and M.~Muller.
+\newblock Note on the generation of random normal deviates.
+\newblock \emph{The Annals of Mathematical Statistics}, 29\penalty0
+  (2):\penalty0 610--611, 1958.
+\newblock \doi{10.1214/aoms/1177706645}.
+
 \bibitem[Choi et~al.(2006)Choi, Grandhi, and Canfield]{Choi2006}
 S.~Choi, R.~Grandhi, and R.~Canfield.
 \newblock \emph{Reliability-based Structural Design}.
 \newblock Springer, first edition, 2006.
 \newblock ISBN 9781846284441.
 
+\bibitem[Ditlevsen and Madsen(1996)]{Ditlevsen1996}
+O.~Ditlevsen and H.~Madsen.
+\newblock \emph{Structrual Reliability Methods}.
+\newblock Wiley, first edition, 1996.
+\newblock ISBN 0-471-96086-1.
+
 \bibitem[Echard et~al.(2011)Echard, Gayton, and Lemaire]{Echard2011}
 B.~Echard, N.~Gayton, and M.~Lemaire.
 \newblock {AK-MCS}: An active learning reliability method combining {Kriging}
   and {Monte Carlo Simulation}.
-\newblock \emph{Structural Safety}, 33\penalty0 (145-154), 2011.
+\newblock \emph{Structural Safety}, 33:\penalty0 145--154, 2011.
 \newblock \doi{10.1016/j.strusafe.2011.01.002}.
+
+\bibitem[Lemaire(2009)]{Lemaire2009}
+M.~Lemaire.
+\newblock \emph{Structural Reliabiity}.
+\newblock Wiley, first edition, 2009.
+\newblock ISBN 978-1-84821-082-0.
 
 \bibitem[Lv et~al.(2015)Lv, Lu, and Wang]{Lv2015}
 Z.~Lv, Z.~Lu, and P.~Wang.
 \newblock A new learning function for {Kriging} and its applications to solve
   reliability problems in engineering.
-\newblock \emph{Computers and Mathematics with Applications}, 70\penalty0
-  (1182-1197), 2015.
+\newblock \emph{Computers and Mathematics with Applications}, 70:\penalty0
+  1182--1197, 2015.
 \newblock \doi{10.1016/j.camwa.2015.07.004}.
+
+\bibitem[Matsumoto and Nishimura(1998)]{MT}
+M.~Matsumoto and T.~Nishimura.
+\newblock {Mersenne Twister}: A 623-dimensionally equidistributed uniform
+  pseudo-random number generator.
+\newblock \emph{ACM Transactions on Modeling and Computer Simulation},
+  8\penalty0 (1):\penalty0 3--30, 1998.
+\newblock \doi{10.1145/272991.272995}.
 
 \bibitem[Melchers and Beck(2018)]{Melchers2018}
 R.~Melchers and A.~Beck.
@@ -57,14 +90,14 @@ A.~Nowak and K.~Collins.
 Z.~Peijuan, W.~Ming, Z.~Zhouhong, and W.~Liqi.
 \newblock A new active learning method based on the learning function {U} of
   the {AK-MCS} reliability analysis method.
-\newblock \emph{Engineering Structures}, 148\penalty0 (185-194), 2017.
+\newblock \emph{Engineering Structures}, 148:\penalty0 185--194, 2017.
 \newblock \doi{10.1016/j.engstruct.2017.06.038}.
 
 \bibitem[Schueremans and Gemert(2005)]{Schu2005}
 L.~Schueremans and D.~Van Gemert.
 \newblock Benefit of splines and neural networks in simulation based structural
   reliability analysis.
-\newblock \emph{Structural Safety}, 27\penalty0 (246-261), 2005.
+\newblock \emph{Structural Safety}, 27:\penalty0 246--261, 2005.
 \newblock \doi{10.1016/j.strusafe.2004.11.001}.
 
 \end{thebibliography}

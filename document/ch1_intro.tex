@@ -8,31 +8,34 @@ The determination of whether these limits have been exceeded has been addressed 
 
 The term reliability is commonly defined as the complement of the probability of failure (failure being understood as the exceeding of a predefined limit state). In other words, reliability corresponds to the probability that the structure will function properly during a period of time \citep{Melchers2018}. \\
 
-Several methods have been derived from MCS, trying to overcome the problem of
+The use of reliability methods in structural engineering has several advantages, as stated in \citep{Lemaire2009}. Among them, there are:
+
+\begin{itemize}
+    \item offer a more realistic processing of uncertainties, allowing for a better understanding of these in the response of the structures, 
+    \item allow an optimal distribution of materials and resources in each component as well as in the entire structure,
+    \item permit the evaluation of the regulations established in building codes (e.g. safety factors), which can sometimes appear arbitrary due to the ignorance of the uncertainties associated with the phenomena
+\end{itemize}
+
+As a result, reliability analysis methods are being used more and more, given the stringent performance requirements, safety margins, and competitiveness of the market. They are particularly useful when dealing with unconventional structures for which there is insufficient empirical information. \citep{Choi2006}. \\
+
+Several methods have been developed to estimate reliability, based on different principles. Each of them has advantages and disadvantages according to the nature of the problem, the number of variables involved and how they interact with each other, among other aspects. One of the most robust methods for reliability estimation is the Monte Carlo Simulation (MCS). The concept behind MCS is relatively simple, and it is a very powerful method, but its main drawback is that it can become computationally expensive \citep{Nowak2000}. \\
+
+Various methods have been derived from MCS, trying to overcome the problem of
 its computational cost, while preserving its strengths. In this document we study
 one of those methods, known as AK-MCS for Active learning reliability method combining
 Kriging and MCS, which attempts to obtain results equivalent to those given by MCS in a 
 more efficient manner \citep{Echard2011}.
 
-\section{Motivation}
-The fundamental reason for doing this project is the desire to be initiated in academic
-research, which contributes to the generation of knowledge and the development of 
-science and the self.\\
-
-Additionally, the structural reliability assesment is a very fascinating field which 
-is constantly developing and can have a great impact. I can visualize myself working on these 
-topics in the future.
-\section{Objective}
-The main objective of this final project is to implement the algorithm described in 
-an article\cite{Echard2011} that proposes a new approach based on MCS and Kriging
+\section{Objectives}
+The main objective of this final project is to implement the algorithm proposed by \citep{Echard2011} that employs MCS and a Kriging
 metamodel to asses structural reliability. In order to satisfactorily do this, many
 specific objectives have to be achieved, which include:
 \begin{itemize}
-    \item Learning the Monte Carlo Simulation method.
-    \item Learning the Kriging regression algorithm.
-    \item Reading and completely understand the article.
-    \item Implementing the previously mentioned methods in Python.
-    \item Reviewing articles that aim to improve the performance of the AK-MCS algorithm.
-    \item Evaluating the performance of the algorithm, comparing it with the basic MCS.
+    \item Learn the Monte Carlo Simulation method.
+    \item Learn the Kriging regression algorithm.
+    \item Completely understand the article.
+    \item Implement the previously mentioned methods in Python.
+    \item Review articles that aim to improve the performance of the AK-MCS algorithm.
+    \item Evaluate the performance of the algorithm, comparing it with the basic MCS.
 \end{itemize}
 

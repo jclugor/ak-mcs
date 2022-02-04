@@ -26,6 +26,7 @@
 
 \usepackage{microtype} % Improves character and word spacing
 \usepackage{amsmath}
+\usepackage{mathtools}
 \usepackage{bm}
 \usepackage{empheq}
 \usepackage{lipsum} % Inserts dummy text
@@ -33,6 +34,7 @@
 \usepackage{booktabs} % Better horizontal rules in tables
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{scalerel}
 \usepackage{graphicx} % Needed to insert images into the document
 \graphicspath{{graphics/}} % Sets the default location of pictures
 \setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio} % Improves figure scaling
@@ -57,11 +59,22 @@
 \end{fullwidth}
 }
 
+
 \newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage} % Command to insert a blank page
 
 \usepackage{makeidx} % Used to generate the index
 \makeindex % Generate the index which is printed at the end of the document
 
+\makeatletter
+% Paragraph indentation and separation for normal text
+\renewcommand{\@tufte@reset@par}{%
+  \setlength{\RaggedRightParindent}{0pc}%
+  \setlength{\JustifyingParindent}{0pc}%
+  \setlength{\parindent}{0pc}%
+  \setlength{\parskip}{0pt}%
+}
+\@tufte@reset@par
+\makeatother
 %----------------------------------------------------------------------------------------
 
 \renewcommand{\maketitlepage}{%
@@ -119,11 +132,43 @@
   {{\colorbox{chapcolor}{\parbox{2cm}{\centering\itshape\Large\color{white}Chapter \thechapter}}}\Vhrulefill}{0pt}
   {}
 
-% toc
+% examples
 
+% ######################
+% \def\exampletext{Example} % If English
+\usepackage[most]{tcolorbox}
+\newcounter{testexample}
+\usepackage{xparse}
+
+\NewDocumentEnvironment{testexample}{ O{} }
+{
+\newtcolorbox[use counter=testexample]{testexamplebox}{%
+    % Example Frame Start
+    empty,% Empty previously set parameters
+    title=Example: #1,% use \thetcbcounter to access the testexample counter text
+    % Attaching a box requires an overlay
+    attach boxed title to top left,
+       % Ensures proper line breaking in longer titles
+       minipage boxed title,
+    % (boxed title style requires an overlay)
+    boxed title style={empty,size=minimal,toprule=0pt,top=4pt,left=3mm,overlay={}},
+    coltitle=chapcolor,fonttitle=\bfseries,
+    before=\par\medskip\noindent,parbox=false,boxsep=0pt,left=3mm,right=0mm,top=2pt,breakable,pad at break=0mm,
+       before upper=\csname @totalleftmargin\endcsname0pt, % Use instead of parbox=true. This ensures parskip is inherited by box.
+    % Handles box when it exists on one page only
+    overlay unbroken={\draw[chapcolor,line width=.5pt] ([xshift=-0pt]title.north west) -- ([xshift=-0pt]frame.south west); },
+    % Handles multipage box: first page
+    overlay first={\draw[chapcolor,line width=.5pt] ([xshift=-0pt]title.north west) -- ([xshift=-0pt]frame.south west); },
+    % Handles multipage box: middle page
+    overlay middle={\draw[chapcolor,line width=.5pt] ([xshift=-0pt]frame.north west) -- ([xshift=-0pt]frame.south west); },
+    % Handles multipage box: last page
+    overlay last={\draw[chapcolor,line width=.5pt] ([xshift=-0pt]frame.north west) -- ([xshift=-0pt]frame.south west); },%
+    }
+\begin{testexamplebox}}
+{\end{testexamplebox}\endlist}
+% toc
 \setcounter{tocdepth}{2}
 \addtocontents{toc}{\itshape}
-
 \begin{document}
 
 \frontmatter

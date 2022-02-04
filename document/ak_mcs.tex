@@ -1,6 +1,5 @@
 \chapter{The AK-MCS algorithm}
 \label{ch:5}
-
 Crude Monte Carlo Simluations are easy to implement and robust in dealing with 
 reliability problems. However, they require the evaluation of the expensive performance
 function a considerable amount of times. AK-MCS\sidenote{stands for Active learning method combining Kriging and
@@ -9,7 +8,49 @@ Monte Carlo Simulation and is described in
 aims to overcome this downside making use Gaussian Processes
 Regressions and a learning function to optimize the number of calls of the performance function
 on a Monte Carlo simulation.
+\section{Preliminaries}
+\subsection{Gaussian Identity of conditional distributions}
+The joint probability density of the multivariate Gaussian distribution is given by:
+\begin{equation}
+  p(\bm{x}|\bm{m},\bm{\Sigma}) = (2\pi)^{D/2}|\bm{\Sigma}|^{-1/2}\exp{\left(-\frac{1}{2}(\bm{x}-\bm{m})^{T}\bm{\Sigma}^{-1}(\bm{x}-\bm{m})\right)}
+\end{equation}
+where $\bm{x}$ is a vector of length $D$, $\bm{m}$ is the mean vector, and $\bm{\Sigma}$ is the covariance matrix, which is symmetric and positive definite. To say that $\bm{x}$ follows a Gaussian distribution with mean  $\bm{m}$ and covariance $\bm{\Sigma}$ we write $\bm{x} \sim \mathcal{N}(\bm{m}, \bm{\Sigma})$. \\
 
+Let $\bm{x}$ and $\bm{y}$ be jointly Gaussian random vectors
+\begin{equation}
+  \begin{bmatrix}
+    \bm{x} \\ \bm{y}
+  \end{bmatrix}
+  \sim \mathcal{N}\left(
+    \begin{bmatrix}
+    \bm{\mu_x} \\ \bm{\mu_y}
+    \end{bmatrix} , \begin{bmatrix}
+      \bm{A} & \bm{C} \\ \bm{C}^T & \bm{B}
+    \end{bmatrix} \right)
+\end{equation}
+
+then the conditional distribution of $\bm{x}$ given $\bm{y}$ is:
+\begin{equation}
+  \bm{x}|\bm{y} \sim \mathcal{N}\left(\bm{\mu_x} + \bm{C} \bm{B}^{-1}(\bm{y}-\bm{\mu_y}), \; \bm{A} - \bm{C}\bm{B}^{-1}\bm{C}^T \right)
+\end{equation}
+The proof of this fact can be detailed in \citep{Bishop}, section 3.1.
+
+\subsection{Gaussian Processes}
+A Gaussian process, is a collection of random variables, any finite number of which have a joint Gaussian distribution. It is completely specified by its mean function and covariance function.
+
+\begin{equation}
+  f(\bm{x}) \sim \mathcal{GP}(m(\bm{x}), k(\bm{x}, \bm{x'}))
+\end{equation}
+
+\begin{equation}
+  \begin{bmatrix}
+    \bm{y} \\ \bm{\mathrm{f}}_*
+  \end{bmatrix}
+  \sim \mathcal{N}\left(
+  \bm{0}, \begin{bmatrix}
+      \bm{K}+\sigma_n^2 \bm{I} & \bm{K}_* \\ \bm{K}_*^T & \bm{K}
+    \end{bmatrix} \right)
+\end{equation}
 \section{Step-by-step of the method}
 \begin{enumerate}
     \item \textbf{Generation of a Monte Carlo population in the design space.}
@@ -49,7 +90,7 @@ on a Monte Carlo simulation.
     $5\%$, AK-MCS stops and the last estimation of the probability of failure is
     considered as the result. In other case, it continue to Stage 9.
     \item \textbf{Update of the population.} $S$ is increased with other $n_{MC}$ points from the
-    design space generated in the same way that in Stage 1.
+    design space generated in the same way that in Stage 1, and proceed back to stage 3.
 \end{enumerate} 
 
 \section{Learning Functions}
